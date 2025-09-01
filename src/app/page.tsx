@@ -1,103 +1,124 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, useEffect } from "react"
+import { CourseList } from "@/components/course-list"
+import { WeeklySchedule } from "@/components/weekly-schedule"
+import { CourseInfoTable } from "@/components/course-info-table"
+import { DarkModeToggle } from "@/components/dark-mode-toggle"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import type { Course, ScheduledCourse } from "@/types/course"
+
+// Fetch courses from JSON URL
+const COURSES_URL = "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json"
+
+export default function CourseScheduler() {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [activeTab, setActiveTab] = useState<"schedule" | "info">("info")
+  const [selectedCourses, setSelectedCourses] = useState<ScheduledCourse[]>([
+    {
+      source: "A01.htm",
+      dept_block: "TNUOB.核心課程Ｏ群－日 INFORMATION EDUCATION",
+      grade: "0",
+      seq: "2586",
+      code: "E3528",
+      major: null,
+      term_order: "0",
+      class: "B",
+      group_div: null,
+      required: "必",
+      credits: 2,
+      group: "O",
+      title: "網路與資訊科技",
+      cap: 50,
+      teacher: "王元慶",
+      times: [
+        "五 / 6,7 / B 206"
+      ],
+      english_taught: false,
+      day: 0,
+      startTime: 0,
+      endTime: 0
+    },
+  ])
+
+  useEffect(() => {
+    fetch(COURSES_URL)
+      .then((res) => res.json())
+      .then((data) => setCourses(data))
+      .catch((err) => {
+        console.error("Failed to fetch courses:", err)
+        setCourses([])
+      })
+  }, [])
+
+  const handleCourseSelect = (course: Course) => {
+    // Simple scheduling logic - place course in available slot
+    const scheduledCourse: ScheduledCourse = {
+      ...course,
+      day: Math.floor(Math.random() * 7), // Random day for demo
+      startTime: Math.floor(Math.random() * 8) + 1,
+      endTime: Math.floor(Math.random() * 8) + 2,
+    }
+
+    setSelectedCourses((prev) => [...prev, scheduledCourse])
+  }
+
+  const handleCourseRemove = (courseId: string) => {
+    setSelectedCourses((prev) => prev.filter((course) => course.seq !== courseId))
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <Header />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="border-b border-border">
+        <div className="flex items-center justify-between">
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab("schedule")}
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "schedule"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              排課模擬
+            </button>
+            <button
+              onClick={() => setActiveTab("info")}
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "info"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              選課資訊
+            </button>
+          </div>
+          <div className="px-6 py-3">
+            <DarkModeToggle />
+          </div>
         </div>
+      </div>
+
+      <main className="flex-1">
+        {activeTab === "schedule" ? (
+          <div className="flex h-[calc(100vh-121px)]">
+            <CourseList
+              courses={courses}
+              onCourseSelect={handleCourseSelect}
+              onCourseRemove={handleCourseRemove}
+              selectedCourses={selectedCourses}
+            />
+            <WeeklySchedule scheduledCourses={selectedCourses} onCourseRemove={handleCourseRemove} />
+          </div>
+        ) : (
+          <CourseInfoTable courses={courses} />
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <Footer />
     </div>
-  );
+  )
 }

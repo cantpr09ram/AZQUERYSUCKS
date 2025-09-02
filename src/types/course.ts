@@ -20,8 +20,9 @@ export interface Course {
   conflict?: boolean
 }
 
-export interface ScheduledCourse extends Course {
-  day: number // 0-6 (Monday-Sunday)
-  startTime: number // 1-14 (time slots)
-  endTime: number
+export type ScheduledCourse = Course & {
+  place?: string[]
+  day?: number[]
+  startTime?: number[]
+  endTime?: number[]
 }

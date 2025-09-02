@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { Course } from "@/types/course"
+import type { Course, ScheduledCourse } from "@/types/course"
 import { v4 as uuidv4 } from "uuid";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronDown, Copy, Check } from "lucide-react"
+import { ChevronDown, Copy, Check, Search } from "lucide-react"
 import Pagination from "./Pagination"
+import { Label } from "@radix-ui/react-select";
 
 interface CourseInfoTableProps {
-  courses: Course[]
+  courses: ScheduledCourse[]
 }
 
 export function CourseInfoTable({ courses }: CourseInfoTableProps) {
@@ -16,6 +17,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
   const [selectedDepartment, setSelectedDepartment] = useState("所有系所")
   const [selectedGrade, setSelectedGrade] = useState("所有年段")
   const [selectedRequired, setSelectedRequired] = useState("必/選修")
+  const [selectedWeekday, setSelectedWeekday] = useState("0")
+  const [selectStartTime, setSelectedStartTime] = useState(0)
+  const [selectEndTime, setSelectedEndTime] = useState(0)
+
   const [currentPage, setCurrentPage] = useState(1)
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set())
   const itemsPerPage = 20
@@ -49,20 +54,48 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
       )
     ),
   ];
+  
+  const DAY_OPTS = [
+    { v: "0", label: "整週" },
+    { v: "1", label: "一 / Mon" },
+    { v: "2", label: "二 / Tue" },
+    { v: "3", label: "三 / Wed" },
+    { v: "4", label: "四 / Thu" },
+    { v: "5", label: "五 / Fri" },
+    { v: "6", label: "六 / Sat" },
+    { v: "7", label: "日 / Sun" },
+  ]
+
+  const PERIOD_OPTS = Array.from({ length: 15 }, (_, i) => i) // 1..14 可依校務調整
 
   // Filter courses
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
-    course.code.includes(searchTerm) ||
-    course.title.includes(searchTerm) ||
-    course.teacher.includes(searchTerm) ||
-    course.seq.includes(searchTerm)
+    (course.code && course.code.includes(searchTerm)) ||
+    (course.title && course.title.includes(searchTerm)) ||
+    (course.teacher && course.teacher.includes(searchTerm)) ||
+    (course.seq && course.seq.includes(searchTerm)) ||
+    (Array.isArray(course.place) && course.place.some(p => p.includes(searchTerm)))
 
     const matchesDepartment = selectedDepartment === "所有系所" || course.dept_block.includes(selectedDepartment)
     const matchesGrade = selectedGrade === "所有年段" || String(course.grade) === selectedGrade;
     const matchesRequired = selectedRequired === "必/選修" || course.required === selectedRequired;
+    const matchesWeekDay = selectedWeekday === "0" || Array.isArray(course.day) && course.day.includes(Number(selectedWeekday))
 
-    return matchesSearch && matchesDepartment && matchesGrade && matchesRequired
+    if (selectStartTime <= selectEndTime) {
+      const matchesStartEnd =
+        (selectStartTime === 0 && selectEndTime === 0) ||
+        (
+          Array.isArray(course.startTime) &&
+          Array.isArray(course.endTime) &&
+          course.startTime.some((s, i) => {
+            const e = course.endTime![i]
+            return s >= selectStartTime && e <= selectEndTime
+          })
+        )
+      return matchesSearch && matchesDepartment && matchesGrade && matchesRequired && matchesWeekDay && matchesStartEnd
+    }
+    return matchesSearch && matchesDepartment && matchesGrade && matchesRequired && matchesWeekDay
   })
 
   // Paginate courses
@@ -96,69 +129,119 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
   }, [totalPages])
 
   return (
-    <div className="p-6 pb-20">
+    <div className="p-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-foreground">選課資訊</h1>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4">
-        <div className="relative">
-          <select
-            value={selectedDepartment}
-            onChange={e => setSelectedDepartment(e.target.value)}
-            className="appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            {departments.map(dept => (
-              <option key={dept} value={dept}>
-                {dept.includes(")") ? dept.split(")")[0] + ")" : dept}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+      <div className="flex flex-col md:flex-row mt-3 justify-between">
+        <div className="flex gap-4">
+          <div className="relative">
+            {/*department */}
+            <select
+              value={selectedDepartment}
+              onChange={e => setSelectedDepartment(e.target.value)}
+              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {departments.map(dept => (
+                <option key={dept} value={dept}>
+                  {dept.includes(")") ? dept.split(")")[0] + ")" : dept}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          </div>
+          {/*grade */}
+          <div className="relative">
+            <select
+              value={selectedGrade}
+              onChange={e => setSelectedGrade(e.target.value)}
+              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {["所有年段", "0", "1", "2", "3", "4"].map(grade => (
+                <option key={grade} value={grade}>
+                  {grade}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          </div>
+          {/*required */}
+          <div className="relative">
+            <select
+              value={selectedRequired}
+              onChange={e => setSelectedRequired(e.target.value)}
+              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {["必/選修", "必", "選"].map(grade => (
+                <option key={grade} value={grade}>
+                  {grade}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          </div>
+          {/*day */}
+          <div className="relative">
+            <select
+              value={selectedWeekday}
+              onChange={e => setSelectedWeekday(e.target.value)}
+              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {DAY_OPTS.map(day => (
+                <option key={day.v} value={day.v}>
+                  {day.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          </div>
+          {/*startTime */}
+          <div className="relative">
+            <select
+              value={selectStartTime}
+              onChange={e => setSelectedStartTime(Number(e.target.value))}
+              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {PERIOD_OPTS.map(p => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          </div>
+          {/*endTime */}
+          <div className="relative">
+            <select
+              value={selectEndTime}
+              onChange={e => setSelectedEndTime(Number(e.target.value))}
+              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {PERIOD_OPTS.map(p => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          </div>
         </div>
-
         <div className="relative">
-          <select
-            value={selectedGrade}
-            onChange={e => setSelectedGrade(e.target.value)}
-            className="appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            {["所有年段", "0", "1", "2", "3", "4"].map(grade => (
-              <option key={grade} value={grade}>
-                {grade}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <input
+            type="text"
+            placeholder="搜尋課程代碼或課程名稱..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="text-sm flex-1 bg-card border border-border rounded-lg pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
         </div>
-
-        <div className="relative">
-          <select
-            value={selectedRequired}
-            onChange={e => setSelectedRequired(e.target.value)}
-            className="appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            {["必/選修", "必", "選"].map(grade => (
-              <option key={grade} value={grade}>
-                {grade}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        </div>
-
-        <input
-          type="text"
-          placeholder="搜尋課程代碼或課程名稱..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 bg-card border border-border rounded-lg px-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        />
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
+      <div className="bg-card border border-border rounded-lg overflow-hidden mt-3 space-y-5">
         <Table>
           <TableHeader>
             <TableRow>

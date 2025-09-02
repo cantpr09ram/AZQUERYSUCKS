@@ -8,12 +8,12 @@ import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import type { Course, ScheduledCourse } from "@/types/course"
-
+import { parseTimes } from "@/utils/parse-times"
 // Fetch courses from JSON URL
 const COURSES_URL = "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json"
 
 export default function CourseScheduler() {
-  const [courses, setCourses] = useState<Course[]>([])
+  const [courses, setCourses] = useState<ScheduledCourse[]>([])
   const [activeTab, setActiveTab] = useState<"schedule" | "info">("info")
   const [selectedCourses, setSelectedCourses] = useState<ScheduledCourse[]>([
     {
@@ -36,16 +36,29 @@ export default function CourseScheduler() {
         "五 / 6,7 / B 206"
       ],
       english_taught: false,
-      day: 0,
-      startTime: 0,
-      endTime: 0
+      day: [1],
+      startTime: [2],
+      endTime: [2]
     },
   ])
 
   useEffect(() => {
     fetch(COURSES_URL)
       .then((res) => res.json())
-      .then((data) => setCourses(data))
+      .then((data: Course[]) => {
+        const normalized: ScheduledCourse[] = data.map((c) => {
+          const parsed = parseTimes(c.times)
+          return {
+            ...c,
+            place: parsed.place,
+            day: parsed.day,
+            startTime: parsed.startTime,
+            endTime: parsed.endTime,
+          }
+        })
+        console.log(normalized[1])
+        setCourses(normalized)
+      })
       .catch((err) => {
         console.error("Failed to fetch courses:", err)
         setCourses([])
@@ -56,9 +69,9 @@ export default function CourseScheduler() {
     // Simple scheduling logic - place course in available slot
     const scheduledCourse: ScheduledCourse = {
       ...course,
-      day: Math.floor(Math.random() * 7), // Random day for demo
-      startTime1: Math.floor(Math.random() * 8) + 1,
-      endTime1: Math.floor(Math.random() * 8) + 2,
+      day: [Math.floor(Math.random() * 7)], // Random day for demo
+      startTime: [Math.floor(Math.random() * 8) + 1],
+      endTime: [Math.floor(Math.random() * 8) + 2],
     }
 
     setSelectedCourses((prev) => [...prev, scheduledCourse])

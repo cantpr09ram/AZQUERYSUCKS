@@ -43,7 +43,7 @@ const Pagination: React.FC<PaginationProps> = ({
   const pages = buildPages(currentPage, totalPages, window);
 
   return (
-    <div className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-50">
+    <div className="sticky left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-50">
       <div className="flex items-center justify-center gap-2">
         {/* Prev button */}
         <button

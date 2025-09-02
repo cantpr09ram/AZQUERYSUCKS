@@ -57,8 +57,8 @@ export default function CourseScheduler() {
     const scheduledCourse: ScheduledCourse = {
       ...course,
       day: Math.floor(Math.random() * 7), // Random day for demo
-      startTime: Math.floor(Math.random() * 8) + 1,
-      endTime: Math.floor(Math.random() * 8) + 2,
+      startTime1: Math.floor(Math.random() * 8) + 1,
+      endTime1: Math.floor(Math.random() * 8) + 2,
     }
 
     setSelectedCourses((prev) => [...prev, scheduledCourse])

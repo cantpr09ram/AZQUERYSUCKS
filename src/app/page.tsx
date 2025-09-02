@@ -65,16 +65,8 @@ export default function CourseScheduler() {
       })
   }, [])
 
-  const handleCourseSelect = (course: Course) => {
-    // Simple scheduling logic - place course in available slot
-    const scheduledCourse: ScheduledCourse = {
-      ...course,
-      day: [Math.floor(Math.random() * 7)], // Random day for demo
-      startTime: [Math.floor(Math.random() * 8) + 1],
-      endTime: [Math.floor(Math.random() * 8) + 2],
-    }
-
-    setSelectedCourses((prev) => [...prev, scheduledCourse])
+  const handleCourseSelect = (course: ScheduledCourse) => {
+    setSelectedCourses(prev => [...prev, course])
   }
 
   const handleCourseRemove = (courseId: string) => {

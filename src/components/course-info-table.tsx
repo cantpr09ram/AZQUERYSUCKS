@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { Course, ScheduledCourse } from "@/types/course"
+import type { ScheduledCourse } from "@/types/course"
 import { v4 as uuidv4 } from "uuid";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ChevronDown, Copy, Check, Search } from "lucide-react"
 import Pagination from "./Pagination"
-import { Label } from "@radix-ui/react-select";
 
 interface CourseInfoTableProps {
   courses: ScheduledCourse[]

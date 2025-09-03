@@ -280,7 +280,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>開課序號</TableHead>
-              <TableHead>課程代碼</TableHead>
+              <TableHead>科目編號</TableHead>
               <TableHead className="min-w-[200px]">課程名稱</TableHead>
               <TableHead>學分</TableHead>
               <TableHead>必修</TableHead>

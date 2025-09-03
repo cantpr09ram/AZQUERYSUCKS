@@ -99,8 +99,6 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
 
   // Paginate courses
   const totalPages = Math.ceil(filteredCourses.length / itemsPerPage)
-  const maxPage = totalPages < 3 ? totalPages : 3;
-  const pages = Array.from({ length: maxPage }, (_, i) => i + 1)
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedCourses = filteredCourses.slice(startIndex, startIndex + itemsPerPage)
   //Keyborad shortcut
@@ -134,110 +132,147 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row mt-3 justify-between">
-        <div className="flex gap-4">
-          <div className="relative">
-            {/*department */}
+      <div className="flex flex-col gap-2 md:gap-3 lg:flex-row lg:items-center lg:gap-3">
+        {/* All selects in one horizontal row on lg+ */}
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 md:gap-3 lg:flex-row lg:flex-nowrap lg:gap-3 lg:order-1">
+          {/* Department */}
+          <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[160px]">
             <select
               value={selectedDepartment}
-              onChange={e => setSelectedDepartment(e.target.value)}
-              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
+                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
             >
-              {departments.map(dept => (
+              {departments.map((dept) => (
                 <option key={dept} value={dept}>
-                  {dept.includes(")") ? dept.split(")")[0] + ")" : dept}
+                  {dept.includes(')') ? dept.split(')')[0] + ')' : dept}
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
           </div>
-          {/*grade */}
-          <div className="relative">
+
+          {/* Grade */}
+          <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[120px]">
             <select
               value={selectedGrade}
-              onChange={e => setSelectedGrade(e.target.value)}
-              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setSelectedGrade(e.target.value)}
+              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
+                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
             >
-              {["所有年段", "0", "1", "2", "3", "4"].map(grade => (
-                <option key={grade} value={grade}>
-                  {grade}
-                </option>
+              {['所有年段','0','1','2','3','4'].map((g)=>(
+                <option key={g} value={g}>{g}</option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
           </div>
-          {/*required */}
-          <div className="relative">
+
+          {/* Required */}
+          <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[110px]">
             <select
               value={selectedRequired}
-              onChange={e => setSelectedRequired(e.target.value)}
-              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setSelectedRequired(e.target.value)}
+              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
+                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
             >
-              {["必/選修", "必", "選"].map(grade => (
-                <option key={grade} value={grade}>
-                  {grade}
-                </option>
+              {['必/選修','必','選'].map((r)=>(
+                <option key={r} value={r}>{r}</option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
           </div>
-          {/*day */}
-          <div className="relative">
+
+          {/* Weekday */}
+          <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[140px]">
             <select
               value={selectedWeekday}
-              onChange={e => setSelectedWeekday(e.target.value)}
-              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setSelectedWeekday(e.target.value)}
+              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
+                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
             >
-              {DAY_OPTS.map(day => (
-                <option key={day.v} value={day.v}>
-                  {day.label}
-                </option>
+              {DAY_OPTS.map((d)=>(
+                <option key={d.v} value={d.v}>{d.label}</option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
           </div>
-          {/*startTime */}
-          <div className="relative">
-            <select
-              value={selectStartTime}
-              onChange={e => setSelectedStartTime(Number(e.target.value))}
-              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              {PERIOD_OPTS.map(p => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          </div>
-          {/*endTime */}
-          <div className="relative">
-            <select
-              value={selectEndTime}
-              onChange={e => setSelectedEndTime(Number(e.target.value))}
-              className="text-sm appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              {PERIOD_OPTS.map(p => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+
+          {/* Time-related filters */}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-3 md:gap-4">
+            {/* Day: span 2 cols on phones */}
+            <div className="relative col-span-2 sm:col-span-1 sm:flex-1 min-w-0">
+              <select
+                value={selectedWeekday}
+                onChange={(e) => setSelectedWeekday(e.target.value)}
+                className="
+                  w-full
+                  text-base sm:text-xs md:text-sm
+                  appearance-none bg-card border border-border rounded-md
+                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                  pr-10 sm:pr-8
+                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                "
+              >
+                {DAY_OPTS.map(d => <option key={d.v} value={d.v}>{d.label}</option>)}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 md:w-4 md:h-4 text-muted-foreground pointer-events-none" />
+            </div>
+
+            {/* Start: left half on phones */}
+            <div className="relative min-w-0">
+              <select
+                value={selectStartTime}
+                onChange={(e) => setSelectedStartTime(Number(e.target.value))}
+                className="
+                  w-full
+                  text-base sm:text-xs md:text-sm
+                  appearance-none bg-card border border-border rounded-md
+                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                  pr-10 sm:pr-8
+                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                "
+              >
+                {PERIOD_OPTS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 md:w-4 md:h-4 text-muted-foreground pointer-events-none" />
+            </div>
+
+            {/* End: right half on phones */}
+            <div className="relative min-w-0">
+              <select
+                value={selectEndTime}
+                onChange={(e) => setSelectedEndTime(Number(e.target.value))}
+                className="
+                  w-full
+                  text-base sm:text-xs md:text-sm
+                  appearance-none bg-card border border-border rounded-md
+                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                  pr-10 sm:pr-8
+                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                "
+              >
+                {PERIOD_OPTS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 md:w-4 md:h-4 text-muted-foreground pointer-events-none" />
+            </div>
           </div>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+
+        {/* Search: sits on the right on lg+, full-width on small */}
+        <div className="relative lg:ml-auto lg:flex-1 lg:max-w-[480px] xl:max-w-[640px] lg:order-2">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-3 sm:h-3" />
           <input
             type="text"
-            placeholder="搜尋課程代碼或課程名稱..."
+            placeholder="搜尋..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="text-sm flex-1 bg-card border border-border rounded-lg pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full text-base sm:text-xs md:text-sm bg-card border border-border rounded-md 
+                      pl-9 sm:pl-8 md:pl-10 pr-3 md:pr-4 py-2 sm:py-1.5 text-foreground placeholder:text-muted-foreground 
+                      focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
       </div>
+
 
       {/* Table */}
       <div className="bg-card border border-border rounded-lg overflow-hidden mt-3 space-y-5">

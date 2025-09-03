@@ -7,11 +7,12 @@ import { CourseInfoTable } from "@/components/course-info-table"
 import { DarkModeToggle } from "@/components/dark-mode-toggle"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { Course, ScheduledCourse } from "@/types/course"
 import { parseTimes } from "@/utils/parse-times"
 // Fetch courses from JSON URL
-const COURSES_URL = "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json"
-
+//const COURSES_URL = "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json"
+const COURSES_URL = "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/feat/ta-session/courses.json"
 export default function CourseScheduler() {
   const [courses, setCourses] = useState<ScheduledCourse[]>([])
   const [activeTab, setActiveTab] = useState<"schedule" | "info">("info")
@@ -116,7 +117,9 @@ export default function CourseScheduler() {
               onCourseRemove={handleCourseRemove}
               selectedCourses={selectedCourses}
             />
-            <WeeklySchedule scheduledCourses={selectedCourses} onCourseRemove={handleCourseRemove} />
+            <ScrollArea className="flex-1">
+              <WeeklySchedule scheduledCourses={selectedCourses} onCourseRemove={handleCourseRemove} />
+            </ScrollArea>
           </div>
         ) : (
           <CourseInfoTable courses={courses} />

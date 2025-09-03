@@ -8,10 +8,8 @@ import { Search } from "lucide-react"
 import Pagination from "./Pagination"
 import { v4 as uuidv4 } from "uuid";
 
-// 若你的資料已預先 parse，可刪掉這段並直接用 course.day/startTime/endTime
 type Interval = { day: number, start: number, end: number }
 function toIntervals(c: ScheduledCourse): Interval[] {
-  // 假設 ScheduledCourse 內已有 parse 後欄位（推薦）
   if (Array.isArray((c as any).day) && Array.isArray((c as any).startTime) && Array.isArray((c as any).endTime)) {
     const d = (c as any).day as number[]
     const s = (c as any).startTime as number[]
@@ -22,19 +20,15 @@ function toIntervals(c: ScheduledCourse): Interval[] {
     }
     return out
   }
-  // 後備：若只有文字 times，可在此呼叫你的 parseTimes(times: string[])
-  // return parseTimes(c.times).map(...)
   return []
 }
 
-function overlaps(a: Interval, b: Interval): boolean {
+const overlaps = (a: Interval, b: Interval): boolean => {
   if (a.day !== b.day) return false
-  // 有交集：a.start <= b.end 且 b.start <= a.end
   return a.start <= b.end && b.start <= a.end
 }
 
 function hasConflict(target: ScheduledCourse, selected: ScheduledCourse[]): boolean {
-  // 如果這堂課已經被選擇，不需要顯示衝突
   if (selected.some(s => s.seq === target.seq)) {
     return false
   }
@@ -114,7 +108,7 @@ export function CourseList({ courses, onCourseSelect, onCourseRemove, selectedCo
   }
 
   return (
-    <div className="w-96 bg-card border-r border-border flex flex-col">
+    <div className="w-80 bg-card border-r border-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <h2 className="text-lg font-semibold mb-4">課程選擇</h2>
@@ -177,18 +171,15 @@ export function CourseList({ courses, onCourseSelect, onCourseRemove, selectedCo
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-mono text-sm bg-muted px-2 py-1 rounded">{course.code}</span>
-                  <span className="text-sm font-medium">{course.title}</span>
-                  {conflict && (
-                    <span className="text-xs bg-destructive text-destructive-foreground px-2 py-1 rounded">
-                      時間衝突
+                    <span className="text-sm font-medium truncate block max-w-[200px]" title={course.title || ""}>
+                      {course.title || ""}
                     </span>
-                  )}
                 </div>
 
                 <div className="text-xs text-muted-foreground space-y-1">
                   <div>學分 {course.credits}</div>
-                  <div>
-                    {course.teacher} | {course.times}
+                  <div className="truncate max-w-[250px]" title={`${course.teacher || ""} | ${course.times || ""}`}>
+                    {course.teacher || ""} | {course.times || ""}
                   </div>
                 </div>
               </div>

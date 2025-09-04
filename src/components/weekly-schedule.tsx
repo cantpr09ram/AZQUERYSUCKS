@@ -38,7 +38,7 @@ export function WeeklySchedule({ scheduledCourses, onCourseRemove }: WeeklySched
     .reduce((sum, c) => sum + (Number(c.credits) || 0), 0)
 
   return (
-    <div className="flex-1 bg-background flex flex-col">
+    <div className="flex-1 bg-background flex flex-col w-260">
       {/* Header */}
       <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

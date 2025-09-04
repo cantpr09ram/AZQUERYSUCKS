@@ -23,7 +23,7 @@ interface SideBarrProps {
 
 export function AppSidebar({ activeTab, setActiveTab, courses, onCourseSelect, onCourseRemove, selectedCourses }: SideBarrProps) {
   return (
-    <Sidebar>
+    <Sidebar className="min-h-screen">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -65,11 +65,6 @@ export function AppSidebar({ activeTab, setActiveTab, courses, onCourseSelect, o
         )}
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <div className="px-3 py-3">
-          <DarkModeToggle />
-        </div>
-      </SidebarFooter>
     </Sidebar>
   )
 }

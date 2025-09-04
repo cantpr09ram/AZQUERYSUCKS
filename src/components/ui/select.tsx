@@ -166,7 +166,7 @@ function SelectScrollDownButton({
       )}
       {...props}
     >
-      <ChevronDownIcon className="size-4" />
+      <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
     </SelectPrimitive.ScrollDownButton>
   )
 }

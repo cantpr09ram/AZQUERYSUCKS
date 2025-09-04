@@ -59,7 +59,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
 
   const [currentPage, setCurrentPage] = useState(1)
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set())
-  const itemsPerPage = 22
+  const itemsPerPage = 20
   // 
   const copyToClipboard = async (text: string, id: string) => {
     try {
@@ -362,16 +362,16 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-border rounded-lg mt-3 overflow-x-auto">
-        <Table className="w-full table-fixed">
+      <div className="overflow-x-auto mt-3">
+        <Table className="min-w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>開課序號</TableHead>
-              <TableHead>科目編號</TableHead>
-              <TableHead className="min-w-[200px]">課程名稱</TableHead>
-              <TableHead>學分</TableHead>
-              <TableHead>必修</TableHead>
-              <TableHead>教師</TableHead>
+              <TableHead className="w-20">開課序號</TableHead>
+              <TableHead className="w-18">科目編號</TableHead>
+              <TableHead className="">課程名稱</TableHead>
+              <TableHead className="w-10">學分</TableHead>
+              <TableHead className="w-10">必修</TableHead>
+              <TableHead className="w-30">教師</TableHead>
               <TableHead>時間地點</TableHead>
               <TableHead>系所名稱</TableHead>
             </TableRow>
@@ -398,7 +398,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="font-mono">{course.code || ""}</TableCell>
-                <TableCell className="min-w-[160px] max-w-[300px]">
+                <TableCell>
                   <div className="truncate" title={course.title || ""}>
                     {course.title || ""}
                   </div>
@@ -416,13 +416,12 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                       ?.trimStart()
                       .split(/\s+/, 1)[0]
                   }
-                </TableCell>
+                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
+            </TableBody>
         </Table>
       </div>
-
       {/* Pagination */}
       <Pagination
         currentPage={currentPage}

@@ -3,8 +3,44 @@
 import { useState, useEffect } from "react"
 import type { ScheduledCourse } from "@/types/course"
 import { v4 as uuidv4 } from "uuid";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronDown, Copy, Check, Search } from "lucide-react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table"
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  ChevronsUpDown,
+  Copy,
+  Check,
+  Search
+} from "lucide-react"
+import { ScrollArea } from"@/components/ui/scroll-area"
 import Pagination from "./Pagination"
 
 interface CourseInfoTableProps {
@@ -12,6 +48,7 @@ interface CourseInfoTableProps {
 }
 
 export function CourseInfoTable({ courses }: CourseInfoTableProps) {
+  const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState("所有系所")
   const [selectedGrade, setSelectedGrade] = useState("所有年段")
@@ -22,7 +59,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
 
   const [currentPage, setCurrentPage] = useState(1)
   const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set())
-  const itemsPerPage = 20
+  const itemsPerPage = 22
   // 
   const copyToClipboard = async (text: string, id: string) => {
     try {
@@ -53,7 +90,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
       )
     ),
   ];
-  
+
   const DAY_OPTS = [
     { v: "0", label: "整週" },
     { v: "1", label: "一 / Mon" },
@@ -70,11 +107,11 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
   // Filter courses
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
-    (course.code && course.code.includes(searchTerm)) ||
-    (course.title && course.title.includes(searchTerm)) ||
-    (course.teacher && course.teacher.includes(searchTerm)) ||
-    (course.seq && course.seq.includes(searchTerm)) ||
-    (Array.isArray(course.place) && course.place.some(p => p.includes(searchTerm)))
+      (course.code && course.code.includes(searchTerm)) ||
+      (course.title && course.title.includes(searchTerm)) ||
+      (course.teacher && course.teacher.includes(searchTerm)) ||
+      (course.seq && course.seq.includes(searchTerm)) ||
+      (Array.isArray(course.place) && course.place.some(p => p.includes(searchTerm)))
 
     const matchesDepartment = selectedDepartment === "所有系所" || course.dept_block.includes(selectedDepartment)
     const matchesGrade = selectedGrade === "所有年段" || String(course.grade) === selectedGrade;
@@ -126,134 +163,185 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
   }, [totalPages])
 
   return (
-    <div className="p-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-foreground">選課資訊</h1>
-      </div>
-
+    <div className="pt-6 px-6">
       {/* Filters */}
       <div className="flex flex-col gap-2 md:gap-3 lg:flex-row lg:items-center lg:gap-3">
         {/* All selects in one horizontal row on lg+ */}
         <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 md:gap-3 lg:flex-row lg:flex-nowrap lg:gap-3 lg:order-1">
           {/* Department */}
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[160px]">
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
-                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
-            >
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept.includes(')') ? dept.split(')')[0] + ')' : dept}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className="
+                    w-full justify-between
+                    text-base sm:text-xs md:text-sm
+                    bg-card border border-border text-foreground
+                    px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                  "
+                >
+                  {selectedDepartment ? selectedDepartment : "找科系..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              {/* 對齊 Trigger 寬度 */}
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-popover text-popover-foreground">
+                <Command className="bg-popover text-popover-foreground">
+                  <CommandInput placeholder="找科系..." className="h-9" />
+                  <CommandList>
+                    <CommandEmpty>無結果</CommandEmpty>
+                    <CommandGroup>
+                      {departments.map((department) => (
+                        <CommandItem
+                          key={department}
+                          value={department}
+                          className="text-popover-foreground"
+                          onSelect={(v) => {
+                            setSelectedDepartment(v === selectedDepartment ? "" : v)
+                            setOpen(false)
+                          }}
+                        >
+                          <span className="truncate">{department}</span>
+                          <Check
+                            className={cn(
+                              "ml-auto h-4 w-4",
+                              selectedDepartment === department ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Grade */}
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[120px]">
-            <select
-              value={selectedGrade}
-              onChange={(e) => setSelectedGrade(e.target.value)}
-              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
-                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
-            >
-              {['所有年段','0','1','2','3','4'].map((g)=>(
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
+            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+              <SelectTrigger
+                className="
+                  w-full text-base sm:text-xs md:text-sm
+                  bg-card border border-border rounded-md
+                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                  pr-10 sm:pr-8
+                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                  [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-3 sm:[&>svg]:h-3 md:[&>svg]:w-4 md:[&>svg]:h-4
+                "
+              >
+                <SelectValue placeholder="所有年段" />
+              </SelectTrigger>
+              <SelectContent>
+                {['所有年段', '0', '1', '2', '3', '4'].map((g) => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Required */}
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[110px]">
-            <select
-              value={selectedRequired}
-              onChange={(e) => setSelectedRequired(e.target.value)}
-              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
-                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
-            >
-              {['必/選修','必','選'].map((r)=>(
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
-          </div>
-
-          {/* Weekday */}
-          <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[140px]">
-            <select
-              value={selectedWeekday}
-              onChange={(e) => setSelectedWeekday(e.target.value)}
-              className="w-full text-base sm:text-xs md:text-sm appearance-none bg-card border border-border rounded-md 
-                        px-4 py-2 sm:px-3 sm:py-1.5 pr-8 md:pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary truncate"
-            >
-              {DAY_OPTS.map((d)=>(
-                <option key={d.v} value={d.v}>{d.label}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 text-muted-foreground pointer-events-none" />
+            <Select value={selectedRequired} onValueChange={setSelectedRequired}>
+              <SelectTrigger
+                className="
+                  w-full text-base sm:text-xs md:text-sm
+                  bg-card border border-border rounded-md
+                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                  pr-10 sm:pr-8
+                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                  [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-3 sm:[&>svg]:h-3 md:[&>svg]:w-4 md:[&>svg]:h-4
+                "
+              >
+                <SelectValue placeholder="必/選修" />
+              </SelectTrigger>
+              <SelectContent>
+                {['必/選修', '必', '選'].map((r) => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Time-related filters */}
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-3 md:gap-4">
-            {/* Day: span 2 cols on phones */}
+            {/* Day */}
             <div className="relative col-span-2 sm:col-span-1 sm:flex-1 min-w-0">
-              <select
-                value={selectedWeekday}
-                onChange={(e) => setSelectedWeekday(e.target.value)}
-                className="
-                  w-full
-                  text-base sm:text-xs md:text-sm
-                  appearance-none bg-card border border-border rounded-md
-                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
-                  pr-10 sm:pr-8
-                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
-                "
-              >
-                {DAY_OPTS.map(d => <option key={d.v} value={d.v}>{d.label}</option>)}
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 md:w-4 md:h-4 text-muted-foreground pointer-events-none" />
+              <Select value={selectedWeekday} onValueChange={setSelectedWeekday}>
+                <SelectTrigger
+                  className="
+                    w-full text-base sm:text-xs md:text-sm
+                    bg-card border border-border rounded-md
+                    px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                    pr-10 sm:pr-8
+                    text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                    [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-3 sm:[&>svg]:h-3 md:[&>svg]:w-4 md:[&>svg]:h-4
+                  "
+                >
+                  <SelectValue placeholder="星期" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAY_OPTS.map(d => (
+                    <SelectItem key={d.v} value={d.v}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Start: left half on phones */}
+            {/* Start */}
             <div className="relative min-w-0">
-              <select
-                value={selectStartTime}
-                onChange={(e) => setSelectedStartTime(Number(e.target.value))}
-                className="
-                  w-full
-                  text-base sm:text-xs md:text-sm
-                  appearance-none bg-card border border-border rounded-md
-                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
-                  pr-10 sm:pr-8
-                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
-                "
+              <Select
+                value={String(selectStartTime)}
+                onValueChange={(v) => setSelectedStartTime(Number(v))}
               >
-                {PERIOD_OPTS.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 md:w-4 md:h-4 text-muted-foreground pointer-events-none" />
+                <SelectTrigger
+                  className="
+                    w-full text-base sm:text-xs md:text-sm
+                    bg-card border border-border rounded-md
+                    px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                    pr-10 sm:pr-8
+                    text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                    [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-3 sm:[&>svg]:h-3 md:[&>svg]:w-4 md:[&>svg]:h-4
+                  "
+                >
+                  <SelectValue placeholder="開始" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERIOD_OPTS.map(p => (
+                    <SelectItem key={p} value={String(p)}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* End: right half on phones */}
+            {/* End */}
             <div className="relative min-w-0">
-              <select
-                value={selectEndTime}
-                onChange={(e) => setSelectedEndTime(Number(e.target.value))}
-                className="
-                  w-full
-                  text-base sm:text-xs md:text-sm
-                  appearance-none bg-card border border-border rounded-md
-                  px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
-                  pr-10 sm:pr-8
-                  text-foreground focus:outline-none focus:ring-2 focus:ring-primary
-                "
+              <Select
+                value={String(selectEndTime)}
+                onValueChange={(v) => setSelectedEndTime(Number(v))}
               >
-                {PERIOD_OPTS.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-3 sm:h-3 md:w-4 md:h-4 text-muted-foreground pointer-events-none" />
+                <SelectTrigger
+                  className="
+                    w-full text-base sm:text-xs md:text-sm
+                    bg-card border border-border rounded-md
+                    px-4 py-2 sm:px-3 sm:py-1.5 md:px-4 md:py-2
+                    pr-10 sm:pr-8
+                    text-foreground focus:outline-none focus:ring-2 focus:ring-primary
+                    [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-3 sm:[&>svg]:h-3 md:[&>svg]:w-4 md:[&>svg]:h-4
+                  "
+                >
+                  <SelectValue placeholder="結束" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERIOD_OPTS.map(p => (
+                    <SelectItem key={p} value={String(p)}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -261,7 +349,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
         {/* Search: sits on the right on lg+, full-width on small */}
         <div className="relative lg:ml-auto lg:flex-1 lg:max-w-[480px] xl:max-w-[640px] lg:order-2">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-3 sm:h-3" />
-          <input
+          <Input
             type="text"
             placeholder="搜尋..."
             value={searchTerm}
@@ -273,10 +361,9 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
         </div>
       </div>
 
-
       {/* Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden mt-3 space-y-5">
-        <Table>
+      <div className="bg-card border border-border rounded-lg mt-3 overflow-x-auto">
+        <Table className="w-full table-fixed">
           <TableHeader>
             <TableRow>
               <TableHead>開課序號</TableHead>
@@ -311,7 +398,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="font-mono">{course.code || ""}</TableCell>
-                <TableCell className="min-w-[200px] max-w-[300px]">
+                <TableCell className="min-w-[160px] max-w-[300px]">
                   <div className="truncate" title={course.title || ""}>
                     {course.title || ""}
                   </div>
@@ -329,10 +416,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                       ?.trimStart()
                       .split(/\s+/, 1)[0]
                   }
-                 </TableCell>
+                </TableCell>
               </TableRow>
             ))}
-            </TableBody>
+          </TableBody>
         </Table>
       </div>
 

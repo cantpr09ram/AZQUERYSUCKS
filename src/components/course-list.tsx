@@ -7,6 +7,24 @@ import type { ScheduledCourse } from "@/types/course"
 import { Search } from "lucide-react"
 import Pagination from "./Pagination"
 import { v4 as uuidv4 } from "uuid";
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Check, ChevronsUpDown } from "lucide-react"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+
+
 
 type Interval = { day: number, start: number, end: number }
 function toIntervals(c: ScheduledCourse): Interval[] {
@@ -57,6 +75,7 @@ export function CourseList({ courses, onCourseSelect, onCourseRemove, selectedCo
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState("所有系所")
   const [currentPage, setCurrentPage] = useState(1)
+  const [open, setOpen] = useState(false)
   const coursesPerPage = 6
 
   const departments = [
@@ -108,36 +127,69 @@ export function CourseList({ courses, onCourseSelect, onCourseRemove, selectedCo
   }
 
   return (
-    <div className="w-80 bg-card border-r border-border flex flex-col">
+    <div className="w-68 bg-card border-r border-border flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="border-b border-border">
         <h2 className="text-lg font-semibold mb-4">課程選擇</h2>
 
-        <select
-          value={selectedDepartment}
-          onChange={e => setSelectedDepartment(e.target.value)}
-          className="appearance-none bg-card border border-border rounded-lg px-4 py-2 pr-10 text-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-2"
-        >
-          {departments.map(dept => (
-            <option key={dept} value={dept}>
-              {dept}
-            </option>
-          ))}
-        </select>
+        <Popover open={open} onOpenChange={setOpen} >
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[250px] justify-between"
+            >
+              {selectedDepartment
+                ? selectedDepartment
+                : "找科系..."}
+              <ChevronsUpDown className="opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[250px] p-0">
+            <Command>
+              <CommandInput placeholder= "找科系..." className="h-9" />
+              <CommandList>
+                <CommandEmpty>無結果</CommandEmpty>
+                <CommandGroup>
+                  {departments.map((department) => (
+                    <CommandItem
+                      key={department}
+                      value={department}
+                      onSelect={(currentValue) => {
+                        setSelectedDepartment(currentValue === selectedDepartment ? "" : currentValue)
+                        setOpen(false)
+                      }}
+                    >
+                      {department}
+                      <Check
+                        className={cn(
+                          "ml-auto",
+                          selectedDepartment === department ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+
+        <div className="relative pt-5">
+          <Search className="absolute left-3 top-2/3 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="搜尋課程代碼或課程名稱..."
+            placeholder="搜尋..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-[250px]"
           />
         </div>
       </div>
 
       {/* Course List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex1 space-y-2">
         <div className="flex justify-between items-center text-sm text-muted-foreground mb-3">
           <span>課程資訊</span>
         </div>
@@ -145,11 +197,10 @@ export function CourseList({ courses, onCourseSelect, onCourseRemove, selectedCo
         {paginated.map(({ course, conflict }) => (
           <Card
             key={uuidv4()}
-            className={`p-3 transition-colors ${
-              conflict
+            className={`p-1 transition-colors ${conflict
                 ? "opacity-60 cursor-not-allowed border-destructive"
                 : "cursor-pointer hover:bg-accent/50"
-            } ${isSelected(course.seq) ? "bg-accent/20 border-accent" : ""}`}
+              } ${isSelected(course.seq) ? "bg-accent/20 border-accent" : ""}`}
             onClick={() => handleCourseToggle(course, conflict)}
             aria-disabled={conflict}
             title={conflict ? "時間衝突，無法選取" : ""}
@@ -171,9 +222,9 @@ export function CourseList({ courses, onCourseSelect, onCourseRemove, selectedCo
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-mono text-sm bg-muted px-2 py-1 rounded">{course.code}</span>
-                    <span className="text-sm font-medium truncate block max-w-[200px]" title={course.title || ""}>
-                      {course.title || ""}
-                    </span>
+                  <span className="text-sm font-medium truncate block max-w-[200px]" title={course.title || ""}>
+                    {course.title || ""}
+                  </span>
                 </div>
 
                 <div className="text-xs text-muted-foreground space-y-1">

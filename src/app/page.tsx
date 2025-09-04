@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { CourseList } from "@/components/course-list"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { Separator } from"@/components/ui/separator"
 import { WeeklySchedule } from "@/components/weekly-schedule"
 import { CourseInfoTable } from "@/components/course-info-table"
-import { DarkModeToggle } from "@/components/dark-mode-toggle"
-import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import type { Course, ScheduledCourse } from "@/types/course"
 import { parseTimes } from "@/utils/parse-times"
 // Fetch courses from JSON URL
@@ -15,7 +15,7 @@ import { parseTimes } from "@/utils/parse-times"
 const COURSES_URL = "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/feat/ta-session/courses.json"
 export default function CourseScheduler() {
   const [courses, setCourses] = useState<ScheduledCourse[]>([])
-  const [activeTab, setActiveTab] = useState<"schedule" | "info">("info")
+  const [activeTab, setActiveTab] = useState<"schedule" | "info">("schedule")
   const [selectedCourses, setSelectedCourses] = useState<ScheduledCourse[]>([
     {
       source: "A01.htm",
@@ -76,55 +76,42 @@ export default function CourseScheduler() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Header />
-
-      <div className="border-b border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex">
-            <button
-              onClick={() => setActiveTab("schedule")}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "schedule"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              排課模擬
-            </button>
-            <button
-              onClick={() => setActiveTab("info")}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "info"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              選課資訊
-            </button>
-          </div>
-          <div className="px-6 py-3">
-            <DarkModeToggle />
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-1">
-        {activeTab === "schedule" ? (
-          <div className="flex h-[calc(100vh-121px)]">
-            <CourseList
-              courses={courses}
-              onCourseSelect={handleCourseSelect}
-              onCourseRemove={handleCourseRemove}
-              selectedCourses={selectedCourses}
-            />
-            <ScrollArea className="flex-1">
-              <WeeklySchedule scheduledCourses={selectedCourses} onCourseRemove={handleCourseRemove} />
-            </ScrollArea>
-          </div>
-        ) : (
-          <CourseInfoTable courses={courses} />
-        )}
-      </main>
+      <SidebarProvider>
+        <AppSidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          courses={courses}
+          onCourseSelect={handleCourseSelect}
+          onCourseRemove={handleCourseRemove}
+          selectedCourses={selectedCourses}
+        />
+        <main className="flex-1">
+          <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+            <div className="flex w-full items-center gap-1 p-4 lg:gap-2 lg:px-6">
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="mx-2 data-[orientation=vertical]:h-4"
+              />
+              {activeTab === "schedule" ? (
+                <h1 className="text-base font-medium">課表</h1>
+              ) : (
+                <h1 className="text-base font-medium">選課資訊</h1>
+              )}
+            </div>
+          </header>
+          
+          {activeTab === "schedule" ? (
+            <div className="flex h-full min-h-0">
+              <div className="flex-1 min-h-0 overflow-auto">
+                <WeeklySchedule scheduledCourses={selectedCourses} onCourseRemove={handleCourseRemove} />
+              </div>
+            </div>
+          ) : (
+            <CourseInfoTable courses={courses} />
+          )}
+        </main>
+      </SidebarProvider>
 
       <Footer />
     </div>

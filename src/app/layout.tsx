@@ -15,6 +15,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AZQUERYSUCKS",
   description: "AZQUERYSUCKS",
+  openGraph: {
+    type: "website",
+    url: "https://example.com",
+    title: "AZQUERYSUCKS",
+    description: "so I made one",
+    siteName: "AZQUERYSUCKS",
+    images: [{ url: "/api/og" }]
+  }
 };
 
 export default function RootLayout({

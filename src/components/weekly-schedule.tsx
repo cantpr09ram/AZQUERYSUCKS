@@ -38,7 +38,7 @@ export function WeeklySchedule({ scheduledCourses, onCourseRemove }: WeeklySched
     .reduce((sum, c) => sum + (Number(c.credits) || 0), 0)
 
   return (
-    <div className="flex-1 bg-background flex flex-col w-260">
+    <div className="overflow-x-hidden">
       {/* Header */}
       <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -56,10 +56,13 @@ export function WeeklySchedule({ scheduledCourses, onCourseRemove }: WeeklySched
       </div>
 
       {/* Schedule Grid */}
-      <div className="flex-1 min-w-0">
-        <ScrollArea className="w-full rounded-md border">
+      <div className="overflow-x-scroll">
+        <div 
+          className=" my-5"
+          style={{ width: `${TIME_W + days.length * COL_W}px` }}
+        >
           {/* let content width follow its size, overflow triggers horizontal scroll */}
-          <div className="min-w-max">
+          <div className="">
             <div
               className="inline-grid gap-px"
               style={{
@@ -94,7 +97,7 @@ export function WeeklySchedule({ scheduledCourses, onCourseRemove }: WeeklySched
                     return (
                       <div
                         key={`${dayLabel}-${slot}`}
-                        className="relative w-[140px] h-[80px] border border-border/50 hover:bg-accent/10 transition-colors overflow-hidden"
+                        className="relative box-border w-full h-full border border-border/50 hover:bg-accent/10 transition-colors overflow-hidden"
                       >
                         {course && (
                           <Card className="absolute inset-1 bg-primary text-primary-foreground p-2">
@@ -121,10 +124,9 @@ export function WeeklySchedule({ scheduledCourses, onCourseRemove }: WeeklySched
               ))}
             </div>
           </div>
-
           {/* shadcn/ui scrollbars */}
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+          
+        </div>
       </div>
     </div>
   )

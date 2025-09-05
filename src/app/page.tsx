@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { SiteHeader } from "@/components/header"
 import { WeeklySchedule } from "@/components/weekly-schedule"
 import { CourseInfoTable } from "@/components/course-info-table"
@@ -92,12 +92,10 @@ export default function CourseScheduler() {
           selectedCourses={selectedCourses}
         />
         <SidebarInset>
-          <SiteHeader />
+          <SiteHeader  activeTab = {activeTab}/>
           {activeTab === "schedule" ? (
             <div className="flex justify-center">
-              <ScrollArea className="">
-                <WeeklySchedule scheduledCourses={selectedCourses} onCourseRemove={handleCourseRemove} />
-              </ScrollArea>
+              <WeeklySchedule scheduledCourses={selectedCourses} onCourseRemove={handleCourseRemove} />
             </div>
           ) : (
             <CourseInfoTable courses={courses} />

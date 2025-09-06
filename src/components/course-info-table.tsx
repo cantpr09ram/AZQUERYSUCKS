@@ -40,7 +40,7 @@ import {
   Check,
   Search
 } from "lucide-react"
-import { ScrollArea } from"@/components/ui/scroll-area"
+
 import Pagination from "./Pagination"
 
 interface CourseInfoTableProps {
@@ -83,7 +83,6 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
       new Set(
         courses.map(({ dept_block }) => {
           const s = String(dept_block || "").trim().replace(/\s+/g, " ");
-          // 取第一個點後面的字，直到第一個空白為止
           const afterDot = s.split(".", 2)[1] ?? s;     // 去掉代碼與點
           return afterDot.trimStart().split(/\s+/, 1)[0]; // 取到第一個空白
         })
@@ -295,7 +294,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
             {/* Start */}
             <div className="relative min-w-0">
               <Select
-                value={String(selectStartTime)}
+                value={String(selectStartTime) }
                 onValueChange={(v) => setSelectedStartTime(Number(v))}
               >
                 <SelectTrigger
@@ -312,7 +311,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {PERIOD_OPTS.map(p => (
-                    <SelectItem key={p} value={String(p)}>{p}</SelectItem>
+                    <SelectItem key={p} value={String(p)}>{String(p)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -338,7 +337,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {PERIOD_OPTS.map(p => (
-                    <SelectItem key={p} value={String(p)}>{p}</SelectItem>
+                    <SelectItem key={p} value={String(p)}>{String(p)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -351,7 +350,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-3 sm:h-3" />
           <Input
             type="text"
-            placeholder="搜尋..."
+            placeholder="課名、教師、地點、代號..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full text-base sm:text-xs md:text-sm bg-card border border-border rounded-md 

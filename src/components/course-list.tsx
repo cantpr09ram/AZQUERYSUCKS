@@ -180,7 +180,7 @@ export function CourseList({ courses, onCourseSelect, onCourseRemove, selectedCo
         <div className="relative pt-5">
           <Search className="absolute left-3 top-2/3 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="搜尋..."
+            placeholder="課名、教師、地點、代號.."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-[250px]"

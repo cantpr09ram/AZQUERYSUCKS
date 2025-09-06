@@ -14,7 +14,7 @@ export function Footer() {
           </a>{" "}
           . The source code is available on{" "}
           <a
-            href="https://github.com"
+            href="https://github.com/cantpr09ram/AZQUERYSUCKS"
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-4 decoration-muted-foreground/60 hover:text-foreground hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"

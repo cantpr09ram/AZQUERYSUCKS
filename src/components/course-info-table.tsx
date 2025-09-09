@@ -352,7 +352,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                 <SelectContent>
                   {PERIOD_OPTS.map((p) => (
                     <SelectItem key={p} value={String(p)}>
-                      {p}
+                      {String(p)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -380,7 +380,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                 <SelectContent>
                   {PERIOD_OPTS.map((p) => (
                     <SelectItem key={p} value={String(p)}>
-                      {p}
+                      {String(p)}
                     </SelectItem>
                   ))}
                 </SelectContent>

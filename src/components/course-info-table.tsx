@@ -392,7 +392,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-3 sm:h-3" />
           <Input
             type="text"
-            placeholder="搜尋..."
+            placeholder="課名、教師、地點、代號.."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full text-base sm:text-xs md:text-sm bg-card border border-border rounded-md 

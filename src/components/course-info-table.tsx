@@ -34,6 +34,7 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
+
 import { ChevronsUpDown, Copy, Check, Search } from "lucide-react";
 import Pagination from "./Pagination";
 
@@ -76,6 +77,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
     ...Array.from(
       new Set(
         courses.map(({ dept_block }) => {
+
           const s = String(dept_block || "")
             .trim()
             .replace(/\s+/g, " ");
@@ -332,7 +334,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
             {/* Start */}
             <div className="relative min-w-0">
               <Select
-                value={String(selectStartTime)}
+                value={String(selectStartTime) }
                 onValueChange={(v) => setSelectedStartTime(Number(v))}
               >
                 <SelectTrigger

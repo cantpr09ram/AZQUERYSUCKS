@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import type { ScheduledCourse } from "@/types/course"
+import { useState, useEffect } from "react";
+import type { ScheduledCourse } from "@/types/course";
 import { v4 as uuidv4 } from "uuid";
 import {
   Table,
@@ -9,10 +9,10 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
-} from "@/components/ui/table"
+  TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
@@ -23,7 +23,7 @@ import {
 import {
   Popover,
   PopoverTrigger,
-  PopoverContent
+  PopoverContent,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,60 +34,56 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import {
-  ChevronsUpDown,
-  Copy,
-  Check,
-  Search
-} from "lucide-react"
-import { ScrollArea } from"@/components/ui/scroll-area"
-import Pagination from "./Pagination"
+import { ChevronsUpDown, Copy, Check, Search } from "lucide-react";
+import Pagination from "./Pagination";
 
 interface CourseInfoTableProps {
-  courses: ScheduledCourse[]
+  courses: ScheduledCourse[];
 }
 
 export function CourseInfoTable({ courses }: CourseInfoTableProps) {
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedDepartment, setSelectedDepartment] = useState("所有系所")
-  const [selectedGrade, setSelectedGrade] = useState("所有年段")
-  const [selectedRequired, setSelectedRequired] = useState("必/選修")
-  const [selectedWeekday, setSelectedWeekday] = useState("0")
-  const [selectStartTime, setSelectedStartTime] = useState(0)
-  const [selectEndTime, setSelectedEndTime] = useState(0)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("所有系所");
+  const [selectedGrade, setSelectedGrade] = useState("所有年段");
+  const [selectedRequired, setSelectedRequired] = useState("必/選修");
+  const [selectedWeekday, setSelectedWeekday] = useState("0");
+  const [selectStartTime, setSelectedStartTime] = useState(0);
+  const [selectEndTime, setSelectedEndTime] = useState(0);
 
-  const [currentPage, setCurrentPage] = useState(1)
-  const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set())
-  const itemsPerPage = 20
-  // 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [copiedItems, setCopiedItems] = useState<Set<string>>(new Set());
+  const itemsPerPage = 20;
+  //
   const copyToClipboard = async (text: string, id: string) => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopiedItems((prev) => new Set(prev).add(id))
+      await navigator.clipboard.writeText(text);
+      setCopiedItems((prev) => new Set(prev).add(id));
       setTimeout(() => {
         setCopiedItems((prev) => {
-          const newSet = new Set(prev)
-          newSet.delete(id)
-          return newSet
-        })
-      }, 2000)
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
+      }, 2000);
     } catch (err) {
-      console.error("Failed to copy text: ", err)
+      console.error("Failed to copy text: ", err);
     }
-  }
+  };
   // Get unique departments
   const departments = [
     "所有系所",
     ...Array.from(
       new Set(
         courses.map(({ dept_block }) => {
-          const s = String(dept_block || "").trim().replace(/\s+/g, " ");
+          const s = String(dept_block || "")
+            .trim()
+            .replace(/\s+/g, " ");
           // 取第一個點後面的字，直到第一個空白為止
-          const afterDot = s.split(".", 2)[1] ?? s;     // 去掉代碼與點
+          const afterDot = s.split(".", 2)[1] ?? s; // 去掉代碼與點
           return afterDot.trimStart().split(/\s+/, 1)[0]; // 取到第一個空白
-        })
-      )
+        }),
+      ),
     ),
   ];
 
@@ -100,9 +96,9 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
     { v: "5", label: "五 / Fri" },
     { v: "6", label: "六 / Sat" },
     { v: "7", label: "日 / Sun" },
-  ]
+  ];
 
-  const PERIOD_OPTS = Array.from({ length: 15 }, (_, i) => i) // 1..14 可依校務調整
+  const PERIOD_OPTS = Array.from({ length: 15 }, (_, i) => i); // 1..14 可依校務調整
 
   // Filter courses
   const filteredCourses = courses.filter((course) => {
@@ -111,56 +107,81 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
       (course.title && course.title.includes(searchTerm)) ||
       (course.teacher && course.teacher.includes(searchTerm)) ||
       (course.seq && course.seq.includes(searchTerm)) ||
-      (Array.isArray(course.place) && course.place.some(p => p.includes(searchTerm)))
+      (Array.isArray(course.place) &&
+        course.place.some((p) => p.includes(searchTerm)));
 
-    const matchesDepartment = selectedDepartment === "所有系所" || course.dept_block.includes(selectedDepartment)
-    const matchesGrade = selectedGrade === "所有年段" || String(course.grade) === selectedGrade;
-    const matchesRequired = selectedRequired === "必/選修" || course.required === selectedRequired;
-    const matchesWeekDay = selectedWeekday === "0" || Array.isArray(course.day) && course.day.includes(Number(selectedWeekday))
+    const matchesDepartment =
+      selectedDepartment === "所有系所" ||
+      course.dept_block.includes(selectedDepartment);
+    const matchesGrade =
+      selectedGrade === "所有年段" || String(course.grade) === selectedGrade;
+    const matchesRequired =
+      selectedRequired === "必/選修" || course.required === selectedRequired;
+    const matchesWeekDay =
+      selectedWeekday === "0" ||
+      (Array.isArray(course.day) &&
+        course.day.includes(Number(selectedWeekday)));
 
     if (selectStartTime <= selectEndTime) {
       const matchesStartEnd =
         (selectStartTime === 0 && selectEndTime === 0) ||
-        (
-          Array.isArray(course.startTime) &&
+        (Array.isArray(course.startTime) &&
           Array.isArray(course.endTime) &&
           course.startTime.some((s, i) => {
-            const e = course.endTime![i]
-            return s >= selectStartTime && e <= selectEndTime
-          })
-        )
-      return matchesSearch && matchesDepartment && matchesGrade && matchesRequired && matchesWeekDay && matchesStartEnd
+            const e = course.endTime![i];
+            return s >= selectStartTime && e <= selectEndTime;
+          }));
+      return (
+        matchesSearch &&
+        matchesDepartment &&
+        matchesGrade &&
+        matchesRequired &&
+        matchesWeekDay &&
+        matchesStartEnd
+      );
     }
-    return matchesSearch && matchesDepartment && matchesGrade && matchesRequired && matchesWeekDay
-  })
+    return (
+      matchesSearch &&
+      matchesDepartment &&
+      matchesGrade &&
+      matchesRequired &&
+      matchesWeekDay
+    );
+  });
 
   // Paginate courses
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedCourses = filteredCourses.slice(startIndex, startIndex + itemsPerPage)
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCourses = filteredCourses.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
   //Keyborad shortcut
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Only handle shortcuts when not typing in input fields
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) {
-        return
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLSelectElement
+      ) {
+        return;
       }
 
       switch (event.key) {
         case "ArrowLeft":
-          event.preventDefault()
-          setCurrentPage((prev) => Math.max(1, prev - 1))
-          break
+          event.preventDefault();
+          setCurrentPage((prev) => Math.max(1, prev - 1));
+          break;
         case "ArrowRight":
-          event.preventDefault()
-          setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-          break
+          event.preventDefault();
+          setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+          break;
       }
-    }
+    };
 
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [totalPages])
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [totalPages]);
 
   return (
     <div className="pt-6 px-6">
@@ -201,15 +222,19 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                           value={department}
                           className="text-popover-foreground"
                           onSelect={(v) => {
-                            setSelectedDepartment(v === selectedDepartment ? "" : v)
-                            setOpen(false)
+                            setSelectedDepartment(
+                              v === selectedDepartment ? "" : v,
+                            );
+                            setOpen(false);
                           }}
                         >
                           <span className="truncate">{department}</span>
                           <Check
                             className={cn(
                               "ml-auto h-4 w-4",
-                              selectedDepartment === department ? "opacity-100" : "opacity-0"
+                              selectedDepartment === department
+                                ? "opacity-100"
+                                : "opacity-0",
                             )}
                           />
                         </CommandItem>
@@ -237,8 +262,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                 <SelectValue placeholder="所有年段" />
               </SelectTrigger>
               <SelectContent>
-                {['所有年段', '0', '1', '2', '3', '4'].map((g) => (
-                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                {["所有年段", "0", "1", "2", "3", "4", "5"].map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -246,7 +273,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
 
           {/* Required */}
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[110px]">
-            <Select value={selectedRequired} onValueChange={setSelectedRequired}>
+            <Select
+              value={selectedRequired}
+              onValueChange={setSelectedRequired}
+            >
               <SelectTrigger
                 className="
                   w-full text-base sm:text-xs md:text-sm
@@ -260,8 +290,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                 <SelectValue placeholder="必/選修" />
               </SelectTrigger>
               <SelectContent>
-                {['必/選修', '必', '選'].map((r) => (
-                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                {["必/選修", "必", "選"].map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -271,7 +303,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-3 md:gap-4">
             {/* Day */}
             <div className="relative col-span-2 sm:col-span-1 sm:flex-1 min-w-0">
-              <Select value={selectedWeekday} onValueChange={setSelectedWeekday}>
+              <Select
+                value={selectedWeekday}
+                onValueChange={setSelectedWeekday}
+              >
                 <SelectTrigger
                   className="
                     w-full text-base sm:text-xs md:text-sm
@@ -285,8 +320,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   <SelectValue placeholder="星期" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DAY_OPTS.map(d => (
-                    <SelectItem key={d.v} value={d.v}>{d.label}</SelectItem>
+                  {DAY_OPTS.map((d) => (
+                    <SelectItem key={d.v} value={d.v}>
+                      {d.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -311,8 +348,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   <SelectValue placeholder="開始" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PERIOD_OPTS.map(p => (
-                    <SelectItem key={p} value={String(p)}>{p}</SelectItem>
+                  {PERIOD_OPTS.map((p) => (
+                    <SelectItem key={p} value={String(p)}>
+                      {p}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -337,8 +376,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   <SelectValue placeholder="結束" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PERIOD_OPTS.map(p => (
-                    <SelectItem key={p} value={String(p)}>{p}</SelectItem>
+                  {PERIOD_OPTS.map((p) => (
+                    <SelectItem key={p} value={String(p)}>
+                      {p}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -378,13 +419,18 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
           </TableHeader>
           <TableBody>
             {paginatedCourses.map((course, index) => (
-              <TableRow key={uuidv4()} className={index % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+              <TableRow
+                key={uuidv4()}
+                className={index % 2 === 0 ? "bg-background" : "bg-muted/20"}
+              >
                 <TableCell className="font-mono">
                   <div className="flex items-center gap-2">
                     <span>{course.seq || ""}</span>
                     {course.seq && (
                       <button
-                        onClick={() => copyToClipboard(course.seq, `seq-${course.seq}`)}
+                        onClick={() =>
+                          copyToClipboard(course.seq, `seq-${course.seq}`)
+                        }
                         className="p-1 hover:bg-muted rounded transition-colors"
                         title="複製開課序號"
                       >
@@ -403,10 +449,16 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                     {course.title || ""}
                   </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{course.credits || ""}</TableCell>
-                <TableCell className="text-muted-foreground">{course.required || ""}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {course.credits || ""}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {course.required || ""}
+                </TableCell>
                 <TableCell>{course.teacher || ""}</TableCell>
-                <TableCell className="text-muted-foreground">{course.times?.join(" || ") || ""}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {course.times?.join(" || ") || ""}
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {
                     String(course.dept_block || "")
@@ -416,10 +468,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                       ?.trimStart()
                       .split(/\s+/, 1)[0]
                   }
-                 </TableCell>
+                </TableCell>
               </TableRow>
             ))}
-            </TableBody>
+          </TableBody>
         </Table>
       </div>
       {/* Pagination */}
@@ -430,5 +482,5 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
         window={2}
       />
     </div>
-  )
+  );
 }

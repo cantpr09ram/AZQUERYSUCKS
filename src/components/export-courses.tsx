@@ -57,9 +57,10 @@ export function ExportCoursesDrawerDialog({
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>匯出課表</DialogTitle>
-            <DialogDescription>
-              Make changes to your profile here. Click save when you&apos;re
-              done.
+            <DialogDescription className="flex items-center gap-1">
+              <span>按</span>
+              <Copy className="w-3 h-3 text-muted-foreground" />
+              <span>來複製開課序號</span>
             </DialogDescription>
           </DialogHeader>
           {/* 傳入 courses */}
@@ -80,8 +81,10 @@ export function ExportCoursesDrawerDialog({
       <DrawerContent>
         <DrawerHeader className="text-left">
           <DrawerTitle>匯出課表</DrawerTitle>
-          <DrawerDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
+          <DrawerDescription className="flex items-center gap-1">
+            <span>按</span>
+            <Copy className="w-3 h-3 text-muted-foreground" />
+            <span>來複製開課序號</span>
           </DrawerDescription>
         </DrawerHeader>
         <ExportCoursesTable courses={courses} />

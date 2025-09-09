@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     title: "AZQUERYSUCKS",
     description: "so I made one",
     siteName: "AZQUERYSUCKS",
-    images: [{ url: "/api/og" }]
-  }
+    images: [{ url: "/api/og" }],
+  },
 };
 
 export default function RootLayout({

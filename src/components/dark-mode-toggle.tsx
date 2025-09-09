@@ -1,48 +1,50 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 export function DarkModeToggle() {
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     // Check if dark mode is already enabled
-    const isDarkMode = document.documentElement.classList.contains("dark")
-    setIsDark(isDarkMode)
-  }, [])
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    setIsDark(isDarkMode);
+  }, []);
 
   const toggleDarkMode = () => {
-    const newIsDark = !isDark
-    setIsDark(newIsDark)
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
 
     if (newIsDark) {
-      document.documentElement.classList.add("dark")
-      localStorage.setItem("darkMode", "true")
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("darkMode", "true");
     } else {
-      document.documentElement.classList.remove("dark")
-      localStorage.setItem("darkMode", "false")
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("darkMode", "false");
     }
-  }
+  };
 
   useEffect(() => {
     // Load dark mode preference from localStorage
-    const savedDarkMode = localStorage.getItem("darkMode")
+    const savedDarkMode = localStorage.getItem("darkMode");
     if (savedDarkMode === "true") {
-      setIsDark(true)
-      document.documentElement.classList.add("dark")
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
     } else if (savedDarkMode === "false") {
-      setIsDark(false)
-      document.documentElement.classList.remove("dark")
+      setIsDark(false);
+      document.documentElement.classList.remove("dark");
     } else {
       // Default to system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-      setIsDark(prefersDark)
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      setIsDark(prefersDark);
       if (prefersDark) {
-        document.documentElement.classList.add("dark")
+        document.documentElement.classList.add("dark");
       }
     }
-  }, [])
+  }, []);
 
   return (
     <Button
@@ -84,5 +86,5 @@ export function DarkModeToggle() {
         </svg>
       )}
     </Button>
-  )
+  );
 }

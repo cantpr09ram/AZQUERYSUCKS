@@ -49,7 +49,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="px-3 py-1 text-sm border border-border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
+          className="px-2 py-1 text-sm border border-border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
         >
           &lt;
         </button>
@@ -59,7 +59,7 @@ const Pagination: React.FC<PaginationProps> = ({
           p === "gap" ? (
             <span
               key={`gap-${idx}`}
-              className="px-2 text-sm text-muted-foreground"
+              className="px-1 text-sm text-muted-foreground"
             >
               ...
             </span>
@@ -67,7 +67,7 @@ const Pagination: React.FC<PaginationProps> = ({
             <button
               key={p}
               onClick={() => onPageChange(p)}
-              className={`px-3 py-1 text-sm border border-border rounded ${
+              className={`px-2 py-1 text-sm border border-border rounded ${
                 currentPage === p
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-muted"
@@ -75,14 +75,14 @@ const Pagination: React.FC<PaginationProps> = ({
             >
               {p}
             </button>
-          )
+          ),
         )}
 
         {/* Next button */}
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 text-sm border border-border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
+          className="px-2 py-1 text-sm border border-border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
         >
           &gt;
         </button>

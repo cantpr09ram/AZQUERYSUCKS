@@ -1,22 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { SiteHeader } from "@/components/header";
 import { WeeklySchedule } from "@/components/weekly-schedule";
-import { CourseInfoTable } from "@/components/course-info-table";
 import { Footer } from "@/components/footer";
 import type { Course, ScheduledCourse } from "@/types/course";
 import { parseTimes } from "@/utils/parse-times";
+import { SiteHeader } from "@/components/header";
 // Fetch courses from JSON URL
 const COURSES_URL =
   "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json";
 //const COURSES_URL =
 export default function CourseScheduler() {
   const [courses, setCourses] = useState<ScheduledCourse[]>([]);
-  const [activeTab, setActiveTab] = useState<"schedule" | "info">("schedule");
   const [selectedCourses, setSelectedCourses] = useState<ScheduledCourse[]>([
     {
       source: "A01.htm",
@@ -76,36 +71,17 @@ export default function CourseScheduler() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        courses={courses}
-        onCourseSelect={handleCourseSelect}
-        onCourseRemove={handleCourseRemove}
-        selectedCourses={selectedCourses}
-      />
-      <SidebarInset>
-        <SiteHeader activeTab={activeTab} />
-        {activeTab === "schedule" ? (
-          <div className="flex justify-center">
-            <WeeklySchedule
-              scheduledCourses={selectedCourses}
-              onCourseRemove={handleCourseRemove}
-            />
-          </div>
-        ) : (
-          <CourseInfoTable courses={courses} />
-        )}
-        <Footer />
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex flex-col min-h-screen">
+      <SiteHeader />
+      <div className="flex-1 flex justify-center">
+        <WeeklySchedule
+          courses={courses}
+          onCourseSelect={handleCourseSelect}
+          onCourseRemove={handleCourseRemove}
+          scheduledCourses={selectedCourses}
+        />
+      </div>
+      <Footer />
+    </div>
   );
 }

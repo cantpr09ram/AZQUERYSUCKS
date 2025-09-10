@@ -34,7 +34,6 @@ import { Copy, Check, Share } from "lucide-react";
 
 import { ScheduledCourse } from "@/types/course";
 
-// 定義父元件的 props
 interface ExportCoursesDrawerDialogProps {
   courses: ScheduledCourse[];
 }
@@ -54,7 +53,7 @@ export function ExportCoursesDrawerDialog({
             匯出課表
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[900px]">
           <DialogHeader>
             <DialogTitle>匯出課表</DialogTitle>
             <DialogDescription className="flex items-center gap-1">
@@ -90,7 +89,7 @@ export function ExportCoursesDrawerDialog({
         <ExportCoursesTable courses={courses} />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Close</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

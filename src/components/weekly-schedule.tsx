@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import type { ScheduledCourse } from "@/types/course";
 import { X } from "lucide-react";
 import { ExportCoursesDrawerDialog } from "@/components/export-courses";
+import { AddCoursesDrawerDialog } from "./add-courses";
 
 interface WeeklyScheduleProps {
-  scheduledCourses: ScheduledCourse[];
+  courses: ScheduledCourse[];
+  onCourseSelect: (course: ScheduledCourse) => void;
   onCourseRemove: (courseId: string) => void;
+  scheduledCourses: ScheduledCourse[];
 }
 
 const days = ["一", "二", "三", "四", "五", "六", "日"];
@@ -21,8 +24,10 @@ const ROW_H = 60; // row height
 const HEAD_H = 20; // header height
 
 export function WeeklySchedule({
-  scheduledCourses,
+  courses,
+  onCourseSelect,
   onCourseRemove,
+  scheduledCourses,
 }: WeeklyScheduleProps) {
   // 回傳「在該日該節次覆蓋到的第一門課」（如有多門重疊仍取第一門）
   const getCourseAtSlot = (
@@ -53,7 +58,7 @@ export function WeeklySchedule({
     <div className="overflow-x-hidden">
       {/* Header */}
       <div className="p-3 sm:p-4 border-b border-border flex-shrink-0">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between">
           {/* Left block */}
           <div>
             <div className="mt-1 text-xs sm:text-sm text-muted-foreground">
@@ -144,8 +149,15 @@ export function WeeklySchedule({
               ))}
             </div>
           </div>
-          {/* shadcn/ui scrollbars */}
         </div>
+      </div>
+      <div className="fixed bottom-10 right-5">
+        <AddCoursesDrawerDialog
+          courses={courses}
+          onCourseSelect={onCourseSelect}
+          onCourseRemove={onCourseRemove}
+          selectedCourses={scheduledCourses}
+        />
       </div>
     </div>
   );

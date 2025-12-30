@@ -1,8 +1,8 @@
 "use client";
 
+import { Check, Copy, Share } from "lucide-react";
 import * as React from "react";
-import { v4 as uuidv4 } from "uuid";
-import { useMediaQuery } from "@/hooks/use-media-query";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,9 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Copy, Check, Share } from "lucide-react";
-
-import { ScheduledCourse } from "@/types/course";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import type { ScheduledCourse } from "@/types/course";
 
 interface ExportCoursesDrawerDialogProps {
   courses: ScheduledCourse[];
@@ -123,7 +122,7 @@ function ExportCoursesTable({ courses }: ExportCoursesTableProps) {
   };
 
   if (count === 0) {
-    return <p>Nothing Here</p>;
+    return <p>目前沒有課程</p>;
   } else {
     return (
       <Table className="min-w-full">
@@ -140,9 +139,13 @@ function ExportCoursesTable({ courses }: ExportCoursesTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {courses.map((course, index) => (
+          {list.map((course, index) => (
             <TableRow
-              key={uuidv4()}
+              key={
+                course.seq
+                  ? `course-${course.seq}`
+                  : `course-${course.code}-${index}`
+              }
               className={index % 2 === 0 ? "bg-background" : "bg-muted/20"}
             >
               <TableCell className="font-mono">
@@ -150,11 +153,13 @@ function ExportCoursesTable({ courses }: ExportCoursesTableProps) {
                   <span>{course.seq || ""}</span>
                   {course.seq && (
                     <button
+                      type="button"
                       onClick={() =>
                         copyToClipboard(course.seq, `seq-${course.seq}`)
                       }
                       className="p-1 hover:bg-muted rounded transition-colors"
                       title="複製開課序號"
+                      aria-label="複製開課序號"
                     >
                       {copiedItems.has(`seq-${course.seq}`) ? (
                         <Check className="w-3 h-3 text-green-500" />

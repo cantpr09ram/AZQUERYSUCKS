@@ -1,22 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import type { ScheduledCourse } from "@/types/course";
-import { Search } from "lucide-react";
-import Pagination from "./Pagination";
-import { v4 as uuidv4 } from "uuid";
-import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -25,29 +12,48 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import type { ScheduledCourse } from "@/types/course";
+import {
+  applyCourseFilters,
+  DAY_OPTIONS,
+  getDepartmentOptions,
+  PERIOD_OPTIONS,
+} from "@/utils/course-filters";
+import { hasScheduleTimes } from "@/utils/course-times";
+import Pagination from "./Pagination";
 
 type Interval = { day: number; start: number; end: number };
-function toIntervals(c: ScheduledCourse): Interval[] {
-  if (
-    Array.isArray((c as any).day) &&
-    Array.isArray((c as any).startTime) &&
-    Array.isArray((c as any).endTime)
+function toIntervals(course: ScheduledCourse): Interval[] {
+  if (!hasScheduleTimes(course)) return [];
+
+  const out: Interval[] = [];
+  for (
+    let i = 0;
+    i <
+    Math.min(course.day.length, course.startTime.length, course.endTime.length);
+    i++
   ) {
-    const d = (c as any).day as number[];
-    const s = (c as any).startTime as number[];
-    const e = (c as any).endTime as number[];
-    const out: Interval[] = [];
-    for (let i = 0; i < Math.min(d.length, s.length, e.length); i++) {
-      out.push({ day: d[i], start: s[i], end: e[i] });
-    }
-    return out;
+    out.push({
+      day: course.day[i],
+      start: course.startTime[i],
+      end: course.endTime[i],
+    });
   }
-  return [];
+  return out;
 }
 
 const overlaps = (a: Interval, b: Interval): boolean => {
@@ -100,81 +106,34 @@ export function CourseList({
   const [open, setOpen] = useState(false);
   const coursesPerPage = 8;
 
-  const departments = [
-    "所有系所",
-    ...Array.from(
-      new Set(
-        courses.map(({ dept_block }) => {
-          const s = String(dept_block || "")
-            .trim()
-            .replace(/\s+/g, " ");
-          const afterDot = s.split(".", 2)[1] ?? s;
-          return afterDot.trimStart().split(/\s+/, 1)[0];
-        }),
-      ),
-    ),
-  ];
+  const departments = useMemo(() => getDepartmentOptions(courses), [courses]);
 
-  const DAY_OPTS = [
-    { v: "0", label: "整週" },
-    { v: "1", label: "一 / Mon" },
-    { v: "2", label: "二 / Tue" },
-    { v: "3", label: "三 / Wed" },
-    { v: "4", label: "四 / Thu" },
-    { v: "5", label: "五 / Fri" },
-    { v: "6", label: "六 / Sat" },
-    { v: "7", label: "日 / Sun" },
-  ];
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
-  const PERIOD_OPTS = Array.from({ length: 15 }, (_, i) => i);
+  const filterState = useMemo(
+    () => ({
+      searchTerm: deferredSearchTerm,
+      department: selectedDepartment,
+      grade: selectedGrade,
+      required: selectedRequired,
+      weekday: selectedWeekday,
+      startTime: selectStartTime,
+      endTime: selectEndTime,
+    }),
+    [
+      deferredSearchTerm,
+      selectEndTime,
+      selectStartTime,
+      selectedDepartment,
+      selectedGrade,
+      selectedRequired,
+      selectedWeekday,
+    ],
+  );
 
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch =
-      (course.code && course.code.includes(searchTerm)) ||
-      (course.title && course.title.includes(searchTerm)) ||
-      (course.teacher && course.teacher.includes(searchTerm)) ||
-      (course.seq && course.seq.includes(searchTerm)) ||
-      (Array.isArray(course.place) &&
-        course.place.some((p) => p.includes(searchTerm)));
-
-    const matchesDepartment =
-      selectedDepartment === "所有系所" ||
-      course.dept_block.includes(selectedDepartment);
-    const matchesGrade =
-      selectedGrade === "所有年段" || String(course.grade) === selectedGrade;
-    const matchesRequired =
-      selectedRequired === "必/選修" || course.required === selectedRequired;
-    const matchesWeekDay =
-      selectedWeekday === "0" ||
-      (Array.isArray(course.day) &&
-        course.day.includes(Number(selectedWeekday)));
-
-    if (selectStartTime <= selectEndTime) {
-      const matchesStartEnd =
-        (selectStartTime === 0 && selectEndTime === 0) ||
-        (Array.isArray(course.startTime) &&
-          Array.isArray(course.endTime) &&
-          course.startTime.some((s, i) => {
-            const e = course.endTime![i];
-            return s >= selectStartTime && e <= selectEndTime;
-          }));
-      return (
-        matchesSearch &&
-        matchesDepartment &&
-        matchesGrade &&
-        matchesRequired &&
-        matchesWeekDay &&
-        matchesStartEnd
-      );
-    }
-    return (
-      matchesSearch &&
-      matchesDepartment &&
-      matchesGrade &&
-      matchesRequired &&
-      matchesWeekDay
-    );
-  });
+  const filteredCourses = useMemo(() => {
+    return applyCourseFilters(courses, filterState);
+  }, [courses, filterState]);
 
   // 計算每筆的衝突狀態（相依 selectedCourses）
   const withConflict = useMemo(() => {
@@ -184,9 +143,54 @@ export function CourseList({
     }));
   }, [filteredCourses, selectedCourses]);
 
-  const totalPages = Math.ceil(withConflict.length / coursesPerPage);
-  const startIndex = (currentPage - 1) * coursesPerPage;
-  const paginated = withConflict.slice(startIndex, startIndex + coursesPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(withConflict.length / coursesPerPage),
+  );
+
+  useEffect(() => {
+    setCurrentPage((prev) => Math.min(prev, totalPages));
+  }, [totalPages]);
+
+  const paginated = useMemo(() => {
+    const startIndex = (currentPage - 1) * coursesPerPage;
+    return withConflict.slice(startIndex, startIndex + coursesPerPage);
+  }, [withConflict, currentPage]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    setSelectedDepartment(value);
+    setCurrentPage(1);
+  };
+
+  const handleGradeChange = (value: string) => {
+    setSelectedGrade(value);
+    setCurrentPage(1);
+  };
+
+  const handleRequiredChange = (value: string) => {
+    setSelectedRequired(value);
+    setCurrentPage(1);
+  };
+
+  const handleWeekdayChange = (value: string) => {
+    setSelectedWeekday(value);
+    setCurrentPage(1);
+  };
+
+  const handleStartTimeChange = (value: number) => {
+    setSelectedStartTime(value);
+    setCurrentPage(1);
+  };
+
+  const handleEndTimeChange = (value: number) => {
+    setSelectedEndTime(value);
+    setCurrentPage(1);
+  };
 
   const isSelected = (courseId: string) =>
     selectedCourses.some((course) => course.seq === courseId);
@@ -211,6 +215,7 @@ export function CourseList({
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   role="combobox"
                   aria-expanded={open}
@@ -238,10 +243,10 @@ export function CourseList({
                           key={department}
                           value={department}
                           className="text-popover-foreground"
-                          onSelect={(v) => {
-                            setSelectedDepartment(
-                              v === selectedDepartment ? "" : v,
-                            );
+                          onSelect={(value) => {
+                            const nextValue =
+                              value === selectedDepartment ? "" : value;
+                            handleDepartmentChange(nextValue);
                             setOpen(false);
                           }}
                         >
@@ -265,7 +270,7 @@ export function CourseList({
 
           {/* Grade */}
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[120px]">
-            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+            <Select value={selectedGrade} onValueChange={handleGradeChange}>
               <SelectTrigger
                 className="
                   w-full text-base sm:text-xs md:text-sm
@@ -279,9 +284,9 @@ export function CourseList({
                 <SelectValue placeholder="所有年段" />
               </SelectTrigger>
               <SelectContent>
-                {["所有年段", "0", "1", "2", "3", "4", "5"].map((g) => (
-                  <SelectItem key={g} value={g}>
-                    {g}
+                {["所有年段", "0", "1", "2", "3", "4", "5"].map((grade) => (
+                  <SelectItem key={grade} value={grade}>
+                    {grade}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -292,7 +297,7 @@ export function CourseList({
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[110px]">
             <Select
               value={selectedRequired}
-              onValueChange={setSelectedRequired}
+              onValueChange={handleRequiredChange}
             >
               <SelectTrigger
                 className="
@@ -322,7 +327,7 @@ export function CourseList({
             <div className="relative col-span-2 sm:col-span-1 sm:flex-1 min-w-0">
               <Select
                 value={selectedWeekday}
-                onValueChange={setSelectedWeekday}
+                onValueChange={handleWeekdayChange}
               >
                 <SelectTrigger
                   className="
@@ -337,9 +342,9 @@ export function CourseList({
                   <SelectValue placeholder="星期" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DAY_OPTS.map((d) => (
-                    <SelectItem key={d.v} value={d.v}>
-                      {d.label}
+                  {DAY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -350,7 +355,7 @@ export function CourseList({
             <div className="relative min-w-0">
               <Select
                 value={String(selectStartTime)}
-                onValueChange={(v) => setSelectedStartTime(Number(v))}
+                onValueChange={(value) => handleStartTimeChange(Number(value))}
               >
                 <SelectTrigger
                   className="
@@ -365,9 +370,9 @@ export function CourseList({
                   <SelectValue placeholder="開始" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PERIOD_OPTS.map((p) => (
-                    <SelectItem key={p} value={String(p)}>
-                      {String(p)}
+                  {PERIOD_OPTIONS.map((period) => (
+                    <SelectItem key={period} value={String(period)}>
+                      {String(period)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -378,7 +383,7 @@ export function CourseList({
             <div className="relative min-w-0">
               <Select
                 value={String(selectEndTime)}
-                onValueChange={(v) => setSelectedEndTime(Number(v))}
+                onValueChange={(value) => handleEndTimeChange(Number(value))}
               >
                 <SelectTrigger
                   className="
@@ -393,9 +398,9 @@ export function CourseList({
                   <SelectValue placeholder="結束" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PERIOD_OPTS.map((p) => (
-                    <SelectItem key={p} value={String(p)}>
-                      {String(p)}
+                  {PERIOD_OPTIONS.map((period) => (
+                    <SelectItem key={period} value={String(period)}>
+                      {String(period)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -411,7 +416,7 @@ export function CourseList({
             type="text"
             placeholder="課名、教師、地點、代號.."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full text-base sm:text-xs md:text-sm bg-card border border-border rounded-md 
                       pl-9 sm:pl-8 md:pl-10 pr-3 md:pr-4 py-2 sm:py-1.5 text-foreground placeholder:text-muted-foreground 
                       focus:outline-none focus:ring-2 focus:ring-primary"
@@ -420,58 +425,62 @@ export function CourseList({
       </div>
       {/* Course List */}
       <div className="py-5 flex1 space-y-2">
-        {paginated.map(({ course, conflict }) => (
-          <Card
-            key={uuidv4()}
-            className={`p-1 transition-colors ${
-              conflict
-                ? "opacity-60 cursor-not-allowed border-destructive"
-                : "cursor-pointer hover:bg-accent/50"
-            } ${isSelected(course.seq) ? "bg-accent/20 border-accent" : ""}`}
-            onClick={() => handleCourseToggle(course, conflict)}
-            aria-disabled={conflict}
-            title={conflict ? "時間衝突，無法選取" : ""}
-          >
-            <div className="flex items-start gap-3 p-1">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={isSelected(course.seq)}
-                  disabled={conflict}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    handleCourseToggle(course, conflict);
-                  }}
-                  className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent disabled:cursor-not-allowed"
-                />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
-                    {course.code}
-                  </span>
-                  <span
-                    className="text-sm font-medium truncate block max-w-[200px]"
-                    title={course.title || ""}
-                  >
-                    {course.title || ""}
-                  </span>
+        {paginated.map(({ course, conflict }) => {
+          const selected = isSelected(course.seq);
+          return (
+            <Card
+              key={course.seq}
+              aria-disabled={conflict}
+              className={`p-1 transition-colors ${
+                conflict
+                  ? "opacity-60 cursor-not-allowed border-destructive"
+                  : "cursor-pointer hover:bg-accent/50"
+              } ${selected ? "bg-accent/20 border-accent" : ""}`}
+              onClick={() => handleCourseToggle(course, conflict)}
+              title={conflict ? "時間衝突，無法選取" : ""}
+            >
+              <div className="flex items-start gap-3 p-1">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    aria-label={`選擇 ${course.title || course.code || "課程"}`}
+                    checked={selected}
+                    disabled={conflict}
+                    onChange={(event) => {
+                      event.stopPropagation();
+                      handleCourseToggle(course, conflict);
+                    }}
+                    className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent disabled:cursor-not-allowed"
+                  />
                 </div>
 
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <div>學分 {course.credits}</div>
-                  <div
-                    className="truncate max-w-[250px]"
-                    title={`${course.teacher || ""} | ${course.times || ""}`}
-                  >
-                    {course.teacher || ""} | {course.times || ""}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
+                      {course.code}
+                    </span>
+                    <span
+                      className="text-sm font-medium truncate block max-w-[200px]"
+                      title={course.title || ""}
+                    >
+                      {course.title || ""}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>學分 {course.credits}</div>
+                    <div
+                      className="truncate max-w-[250px]"
+                      title={`${course.teacher || ""} | ${course.times || ""}`}
+                    >
+                      {course.teacher || ""} | {course.times || ""}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       <Pagination

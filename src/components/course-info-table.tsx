@@ -1,8 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { ScheduledCourse } from "@/types/course";
-import { v4 as uuidv4 } from "uuid";
+import { Check, ChevronsUpDown, Copy, Search } from "lucide-react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,30 +34,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+import type { ScheduledCourse } from "@/types/course";
 import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from "@/components/ui/command";
-
-import { ChevronsUpDown, Copy, Check, Search } from "lucide-react";
+  applyCourseFilters,
+  DAY_OPTIONS,
+  getDepartmentOptions,
+  PERIOD_OPTIONS,
+} from "@/utils/course-filters";
 import Pagination from "./Pagination";
 
 interface CourseInfoTableProps {
@@ -71,92 +76,84 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
       console.error("Failed to copy text: ", err);
     }
   };
-  // Get unique departments
-  const departments = [
-    "所有系所",
-    ...Array.from(
-      new Set(
-        courses.map(({ dept_block }) => {
-          const s = String(dept_block || "")
-            .trim()
-            .replace(/\s+/g, " ");
-          // 取第一個點後面的字，直到第一個空白為止
-          const afterDot = s.split(".", 2)[1] ?? s; // 去掉代碼與點
-          return afterDot.trimStart().split(/\s+/, 1)[0]; // 取到第一個空白
-        }),
-      ),
-    ),
-  ];
+  const departments = useMemo(() => getDepartmentOptions(courses), [courses]);
 
-  const DAY_OPTS = [
-    { v: "0", label: "整週" },
-    { v: "1", label: "一 / Mon" },
-    { v: "2", label: "二 / Tue" },
-    { v: "3", label: "三 / Wed" },
-    { v: "4", label: "四 / Thu" },
-    { v: "5", label: "五 / Fri" },
-    { v: "6", label: "六 / Sat" },
-    { v: "7", label: "日 / Sun" },
-  ];
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
-  const PERIOD_OPTS = Array.from({ length: 15 }, (_, i) => i); // 1..14 可依校務調整
-
-  // Filter courses
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch =
-      (course.code && course.code.includes(searchTerm)) ||
-      (course.title && course.title.includes(searchTerm)) ||
-      (course.teacher && course.teacher.includes(searchTerm)) ||
-      (course.seq && course.seq.includes(searchTerm)) ||
-      (Array.isArray(course.place) &&
-        course.place.some((p) => p.includes(searchTerm)));
-
-    const matchesDepartment =
-      selectedDepartment === "所有系所" ||
-      course.dept_block.includes(selectedDepartment);
-    const matchesGrade =
-      selectedGrade === "所有年段" || String(course.grade) === selectedGrade;
-    const matchesRequired =
-      selectedRequired === "必/選修" || course.required === selectedRequired;
-    const matchesWeekDay =
-      selectedWeekday === "0" ||
-      (Array.isArray(course.day) &&
-        course.day.includes(Number(selectedWeekday)));
-
-    if (selectStartTime <= selectEndTime) {
-      const matchesStartEnd =
-        (selectStartTime === 0 && selectEndTime === 0) ||
-        (Array.isArray(course.startTime) &&
-          Array.isArray(course.endTime) &&
-          course.startTime.some((s, i) => {
-            const e = course.endTime![i];
-            return s >= selectStartTime && e <= selectEndTime;
-          }));
-      return (
-        matchesSearch &&
-        matchesDepartment &&
-        matchesGrade &&
-        matchesRequired &&
-        matchesWeekDay &&
-        matchesStartEnd
-      );
-    }
-    return (
-      matchesSearch &&
-      matchesDepartment &&
-      matchesGrade &&
-      matchesRequired &&
-      matchesWeekDay
-    );
-  });
-
-  // Paginate courses
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCourses = filteredCourses.slice(
-    startIndex,
-    startIndex + itemsPerPage,
+  const filterState = useMemo(
+    () => ({
+      searchTerm: deferredSearchTerm,
+      department: selectedDepartment,
+      grade: selectedGrade,
+      required: selectedRequired,
+      weekday: selectedWeekday,
+      startTime: selectStartTime,
+      endTime: selectEndTime,
+    }),
+    [
+      deferredSearchTerm,
+      selectEndTime,
+      selectStartTime,
+      selectedDepartment,
+      selectedGrade,
+      selectedRequired,
+      selectedWeekday,
+    ],
   );
+
+  const filteredCourses = useMemo(() => {
+    return applyCourseFilters(courses, filterState);
+  }, [courses, filterState]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCourses.length / itemsPerPage),
+  );
+
+  useEffect(() => {
+    setCurrentPage((prev) => Math.min(prev, totalPages));
+  }, [totalPages]);
+
+  const paginatedCourses = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCourses.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCourses, currentPage]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    setSelectedDepartment(value);
+    setCurrentPage(1);
+  };
+
+  const handleGradeChange = (value: string) => {
+    setSelectedGrade(value);
+    setCurrentPage(1);
+  };
+
+  const handleRequiredChange = (value: string) => {
+    setSelectedRequired(value);
+    setCurrentPage(1);
+  };
+
+  const handleWeekdayChange = (value: string) => {
+    setSelectedWeekday(value);
+    setCurrentPage(1);
+  };
+
+  const handleStartTimeChange = (value: number) => {
+    setSelectedStartTime(value);
+    setCurrentPage(1);
+  };
+
+  const handleEndTimeChange = (value: number) => {
+    setSelectedEndTime(value);
+    setCurrentPage(1);
+  };
+
   //Keyborad shortcut
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -195,6 +192,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   role="combobox"
                   aria-expanded={open}
@@ -222,10 +220,10 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                           key={department}
                           value={department}
                           className="text-popover-foreground"
-                          onSelect={(v) => {
-                            setSelectedDepartment(
-                              v === selectedDepartment ? "" : v,
-                            );
+                          onSelect={(value) => {
+                            const nextValue =
+                              value === selectedDepartment ? "" : value;
+                            handleDepartmentChange(nextValue);
                             setOpen(false);
                           }}
                         >
@@ -249,7 +247,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
 
           {/* Grade */}
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[120px]">
-            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+            <Select value={selectedGrade} onValueChange={handleGradeChange}>
               <SelectTrigger
                 className="
                   w-full text-base sm:text-xs md:text-sm
@@ -276,7 +274,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
           <div className="relative flex-1 sm:flex-none min-w-0 lg:min-w-[110px]">
             <Select
               value={selectedRequired}
-              onValueChange={setSelectedRequired}
+              onValueChange={handleRequiredChange}
             >
               <SelectTrigger
                 className="
@@ -306,7 +304,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
             <div className="relative col-span-2 sm:col-span-1 sm:flex-1 min-w-0">
               <Select
                 value={selectedWeekday}
-                onValueChange={setSelectedWeekday}
+                onValueChange={handleWeekdayChange}
               >
                 <SelectTrigger
                   className="
@@ -321,9 +319,9 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   <SelectValue placeholder="星期" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DAY_OPTS.map((d) => (
-                    <SelectItem key={d.v} value={d.v}>
-                      {d.label}
+                  {DAY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -334,7 +332,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
             <div className="relative min-w-0">
               <Select
                 value={String(selectStartTime)}
-                onValueChange={(v) => setSelectedStartTime(Number(v))}
+                onValueChange={(value) => handleStartTimeChange(Number(value))}
               >
                 <SelectTrigger
                   className="
@@ -349,9 +347,9 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   <SelectValue placeholder="開始" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PERIOD_OPTS.map((p) => (
-                    <SelectItem key={p} value={String(p)}>
-                      {String(p)}
+                  {PERIOD_OPTIONS.map((period) => (
+                    <SelectItem key={period} value={String(period)}>
+                      {String(period)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -362,7 +360,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
             <div className="relative min-w-0">
               <Select
                 value={String(selectEndTime)}
-                onValueChange={(v) => setSelectedEndTime(Number(v))}
+                onValueChange={(value) => handleEndTimeChange(Number(value))}
               >
                 <SelectTrigger
                   className="
@@ -377,9 +375,9 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                   <SelectValue placeholder="結束" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PERIOD_OPTS.map((p) => (
-                    <SelectItem key={p} value={String(p)}>
-                      {String(p)}
+                  {PERIOD_OPTIONS.map((period) => (
+                    <SelectItem key={period} value={String(period)}>
+                      {String(period)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -395,7 +393,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
             type="text"
             placeholder="課名、教師、地點、代號.."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full text-base sm:text-xs md:text-sm bg-card border border-border rounded-md 
                       pl-9 sm:pl-8 md:pl-10 pr-3 md:pr-4 py-2 sm:py-1.5 text-foreground placeholder:text-muted-foreground 
                       focus:outline-none focus:ring-2 focus:ring-primary"
@@ -421,7 +419,7 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
           <TableBody>
             {paginatedCourses.map((course, index) => (
               <TableRow
-                key={uuidv4()}
+                key={course.seq || `${course.code}-${index}`}
                 className={index % 2 === 0 ? "bg-background" : "bg-muted/20"}
               >
                 <TableCell className="font-mono">
@@ -429,11 +427,13 @@ export function CourseInfoTable({ courses }: CourseInfoTableProps) {
                     <span>{course.seq || ""}</span>
                     {course.seq && (
                       <button
+                        type="button"
                         onClick={() =>
                           copyToClipboard(course.seq, `seq-${course.seq}`)
                         }
                         className="p-1 hover:bg-muted rounded transition-colors"
                         title="複製開課序號"
+                        aria-label="複製開課序號"
                       >
                         {copiedItems.has(`seq-${course.seq}`) ? (
                           <Check className="w-3 h-3 text-green-500" />

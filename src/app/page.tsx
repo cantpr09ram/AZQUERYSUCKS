@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { WeeklySchedule } from "@/components/weekly-schedule";
+import { useEffect, useState } from "react";
 import { Footer } from "@/components/footer";
+import { SiteHeader } from "@/components/header";
+import { WeeklySchedule } from "@/components/weekly-schedule";
 import type { Course, ScheduledCourse } from "@/types/course";
 import { parseTimes } from "@/utils/parse-times";
-import { SiteHeader } from "@/components/header";
+
 // Fetch courses from JSON URL
 const COURSES_URL =
+  process.env.NEXT_PUBLIC_COURSES_URL ??
   "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json";
+
 //const COURSES_URL =
 export default function CourseScheduler() {
   const [courses, setCourses] = useState<ScheduledCourse[]>([]);
@@ -38,30 +41,45 @@ export default function CourseScheduler() {
   ]);
 
   useEffect(() => {
-    fetch(COURSES_URL)
-      .then((res) => res.json())
-      .then((data: Course[]) => {
-        const normalized: ScheduledCourse[] = data.map((c) => {
-          const parsed = parseTimes(c.times);
+    const controller = new AbortController();
+
+    const loadCourses = async () => {
+      try {
+        const res = await fetch(COURSES_URL, { signal: controller.signal });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch courses: ${res.status}`);
+        }
+        const data: Course[] = await res.json();
+        const normalized: ScheduledCourse[] = data.map((course) => {
+          const parsed = parseTimes(course.times);
           return {
-            ...c,
+            ...course,
             place: parsed.place,
             day: parsed.day,
             startTime: parsed.startTime,
             endTime: parsed.endTime,
           };
         });
-        console.log(normalized[1]);
         setCourses(normalized);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch courses:", err);
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        console.error("Failed to fetch courses:", error);
         setCourses([]);
-      });
+      }
+    };
+
+    loadCourses();
+
+    return () => controller.abort();
   }, []);
 
   const handleCourseSelect = (course: ScheduledCourse) => {
-    setSelectedCourses((prev) => [...prev, course]);
+    setSelectedCourses((prev) => {
+      if (prev.some((item) => item.seq === course.seq)) {
+        return prev;
+      }
+      return [...prev, course];
+    });
   };
 
   const handleCourseRemove = (courseId: string) => {

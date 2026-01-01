@@ -425,11 +425,14 @@ export function CourseList({
       </div>
       {/* Course List */}
       <div className="py-5 flex1 space-y-2">
-        {paginated.map(({ course, conflict }) => {
+        {paginated.map(({ course, conflict }, idx) => {
           const selected = isSelected(course.seq);
           return (
             <Card
-              key={course.seq}
+              key={
+                course.seq ??
+                `${course.code}-${course.class}-${course.group ?? ""}-${course.title}-${idx}`
+              }
               aria-disabled={conflict}
               className={`p-1 transition-colors ${
                 conflict

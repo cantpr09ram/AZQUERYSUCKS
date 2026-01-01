@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQueryState, parseAsArrayOf, parseAsString } from "nuqs";
 import { Footer } from "@/components/footer";
 import { SiteHeader } from "@/components/header";
 import { WeeklySchedule } from "@/components/weekly-schedule";
@@ -15,30 +16,13 @@ const COURSES_URL =
 //const COURSES_URL =
 export default function CourseScheduler() {
   const [courses, setCourses] = useState<ScheduledCourse[]>([]);
-  const [selectedCourses, setSelectedCourses] = useState<ScheduledCourse[]>([
-    {
-      source: "A01.htm",
-      dept_block: "TNUOB.核心課程Ｏ群－日 INFORMATION EDUCATION",
-      grade: "0",
-      seq: "2586",
-      code: "E3528",
-      major: null,
-      term_order: "0",
-      class: "B",
-      group_div: null,
-      required: "必",
-      credits: 2,
-      group: "O",
-      title: "網路與資訊科技",
-      cap: 50,
-      teacher: "王元慶",
-      times: ["五 / 6,7 / B 206"],
-      english_taught: false,
-      day: [1],
-      startTime: [2],
-      endTime: [2],
-    },
-  ]);
+  const [selectedCourseSeqs, setSelectedCourseSeqs] = useQueryState(
+    "selectedCourses",
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+  const selectedCourses = courses.filter((course) =>
+    selectedCourseSeqs.includes(course.seq),
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,18 +58,13 @@ export default function CourseScheduler() {
   }, []);
 
   const handleCourseSelect = (course: ScheduledCourse) => {
-    setSelectedCourses((prev) => {
-      if (prev.some((item) => item.seq === course.seq)) {
-        return prev;
-      }
-      return [...prev, course];
-    });
+    setSelectedCourseSeqs((prev) =>
+      prev.includes(course.seq) ? prev : [...prev, course.seq],
+    );
   };
 
   const handleCourseRemove = (courseId: string) => {
-    setSelectedCourses((prev) =>
-      prev.filter((course) => course.seq !== courseId),
-    );
+    setSelectedCourseSeqs((prev) => prev.filter((seq) => seq !== courseId));
   };
 
   return (

@@ -1,16 +1,18 @@
+import Link from "next/link";
+
+import { CourseList } from "@/components/course-list";
 import {
   Sidebar,
-  SidebarMenu,
-  SidebarMenuItem,
   SidebarContent,
   SidebarGroup,
   SidebarHeader,
+  SidebarMenu,
   SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ScheduledCourse } from "@/types/course";
-import { CourseList } from "@/components/course-list";
+import type { ScheduledCourse } from "@/types/course";
 
-interface SideBarrProps {
+interface AppSidebarProps {
   activeTab: "schedule" | "info";
   setActiveTab: (tab: "schedule" | "info") => void;
   courses: ScheduledCourse[];
@@ -26,7 +28,7 @@ export function AppSidebar({
   onCourseSelect,
   onCourseRemove,
   selectedCourses,
-}: SideBarrProps) {
+}: AppSidebarProps) {
   return (
     <Sidebar className="min-h-screen">
       <SidebarHeader>
@@ -36,9 +38,9 @@ export function AppSidebar({
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="">
+              <Link href="/">
                 <span className="text-base font-semibold">AZQUERYSUCKS</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -54,9 +56,7 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          {activeTab === "info" ? (
-            <></>
-          ) : (
+          {activeTab !== "info" && (
             <CourseList
               courses={courses}
               onCourseSelect={onCourseSelect}

@@ -1,12 +1,13 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import * as React from "react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+
+import { CourseList } from "@/components/course-list";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -15,17 +16,15 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { CourseList } from "@/components/course-list";
-import { Copy, Plus } from "lucide-react";
-import { ScheduledCourse } from "@/types/course";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import type { ScheduledCourse } from "@/types/course";
 
-interface AddCouresesProps {
+interface AddCoursesProps {
   courses: ScheduledCourse[];
   onCourseSelect: (course: ScheduledCourse) => void;
   onCourseRemove: (courseId: string) => void;
@@ -37,7 +36,7 @@ export function AddCoursesDrawerDialog({
   onCourseSelect,
   onCourseRemove,
   selectedCourses,
-}: AddCouresesProps) {
+}: AddCoursesProps) {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -45,7 +44,7 @@ export function AddCoursesDrawerDialog({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="secondary" size="lg">
+          <Button type="button" variant="secondary" size="lg">
             <Plus className="w-4 h-4 mr-2" />
             加入課程
           </Button>
@@ -69,7 +68,7 @@ export function AddCoursesDrawerDialog({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="secondary" size="lg">
+        <Button type="button" variant="secondary" size="lg">
           <Plus className="w-4 h-4 mr-2" />
           加入課程
         </Button>

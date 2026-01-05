@@ -1,87 +1,10 @@
-"use client";
+import { Suspense } from "react";
+import { CourseSchedulerContent } from "@/components/course-scheduler-content";
 
-import { useState, useEffect } from "react";
-import { WeeklySchedule } from "@/components/weekly-schedule";
-import { Footer } from "@/components/footer";
-import type { Course, ScheduledCourse } from "@/types/course";
-import { parseTimes } from "@/utils/parse-times";
-import { SiteHeader } from "@/components/header";
-// Fetch courses from JSON URL
-const COURSES_URL =
-  "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json";
-//const COURSES_URL =
 export default function CourseScheduler() {
-  const [courses, setCourses] = useState<ScheduledCourse[]>([]);
-  const [selectedCourses, setSelectedCourses] = useState<ScheduledCourse[]>([
-    {
-      source: "A01.htm",
-      dept_block: "TNUOB.核心課程Ｏ群－日 INFORMATION EDUCATION",
-      grade: "0",
-      seq: "2586",
-      code: "E3528",
-      major: null,
-      term_order: "0",
-      class: "B",
-      group_div: null,
-      required: "必",
-      credits: 2,
-      group: "O",
-      title: "網路與資訊科技",
-      cap: 50,
-      teacher: "王元慶",
-      times: ["五 / 6,7 / B 206"],
-      english_taught: false,
-      day: [1],
-      startTime: [2],
-      endTime: [2],
-    },
-  ]);
-
-  useEffect(() => {
-    fetch(COURSES_URL)
-      .then((res) => res.json())
-      .then((data: Course[]) => {
-        const normalized: ScheduledCourse[] = data.map((c) => {
-          const parsed = parseTimes(c.times);
-          return {
-            ...c,
-            place: parsed.place,
-            day: parsed.day,
-            startTime: parsed.startTime,
-            endTime: parsed.endTime,
-          };
-        });
-        console.log(normalized[1]);
-        setCourses(normalized);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch courses:", err);
-        setCourses([]);
-      });
-  }, []);
-
-  const handleCourseSelect = (course: ScheduledCourse) => {
-    setSelectedCourses((prev) => [...prev, course]);
-  };
-
-  const handleCourseRemove = (courseId: string) => {
-    setSelectedCourses((prev) =>
-      prev.filter((course) => course.seq !== courseId),
-    );
-  };
-
   return (
-    <div className="flex flex-col min-h-screen">
-      <SiteHeader />
-      <div className="flex-1 flex justify-center">
-        <WeeklySchedule
-          courses={courses}
-          onCourseSelect={handleCourseSelect}
-          onCourseRemove={handleCourseRemove}
-          scheduledCourses={selectedCourses}
-        />
-      </div>
-      <Footer />
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <CourseSchedulerContent />
+    </Suspense>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import * as React from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import type { ScheduledCourse } from "@/types/course";
 import { X } from "lucide-react";
+import * as React from "react";
+
 import { ExportCoursesDrawerDialog } from "@/components/export-courses";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import type { ScheduledCourse } from "@/types/course";
+import { hasScheduleTimes } from "@/utils/course-times";
 import { AddCoursesDrawerDialog } from "./add-courses";
 
 interface WeeklyScheduleProps {
@@ -30,25 +32,36 @@ export function WeeklySchedule({
   scheduledCourses,
 }: WeeklyScheduleProps) {
   // 回傳「在該日該節次覆蓋到的第一門課」（如有多門重疊仍取第一門）
-  const getCourseAtSlot = (
-    day: number,
-    time: number,
-  ): ScheduledCourse | undefined => {
-    return scheduledCourses.find((course) => {
-      if (
-        !Array.isArray(course.day) ||
-        !Array.isArray(course.startTime) ||
-        !Array.isArray(course.endTime)
-      )
-        return false;
-      return course.day.some((d, i) => {
-        const s = course.startTime![i];
-        const e = course.endTime![i];
-        // 覆蓋條件：該格時間 time 落在 s..e 之間
-        return d === day && time >= s && time <= e;
-      });
-    });
-  };
+  const slotMap = React.useMemo(() => {
+    const map = new Map<string, ScheduledCourse>();
+    for (const course of scheduledCourses) {
+      if (!hasScheduleTimes(course)) continue;
+      for (let i = 0; i < course.day.length; i++) {
+        const day = course.day[i];
+        const start = course.startTime[i];
+        const end = course.endTime[i];
+        if (
+          typeof day !== "number" ||
+          typeof start !== "number" ||
+          typeof end !== "number"
+        ) {
+          continue;
+        }
+        for (let slot = start; slot <= end; slot++) {
+          const key = `${day}-${slot}`;
+          if (!map.has(key)) {
+            map.set(key, course);
+          }
+        }
+      }
+    }
+    return map;
+  }, [scheduledCourses]);
+
+  const getCourseAtSlot = React.useCallback(
+    (day: number, time: number) => slotMap.get(`${day}-${time}`),
+    [slotMap],
+  );
 
   const totalCredits = Array.from(
     new Map(scheduledCourses.map((c) => [c.seq, c])).values(),

@@ -18,6 +18,21 @@ describe("parseTimes", () => {
     expect(result.place).toEqual(["RoomA", "RoomB"]);
   });
 
+  it("splits non-consecutive periods into multiple intervals", () => {
+    const result = parseTimes(["7/3,5/RoomC"]);
+    expect(result.day).toEqual([7, 7]);
+    expect(result.startTime).toEqual([3, 5]);
+    expect(result.endTime).toEqual([3, 5]);
+    expect(result.place).toEqual(["RoomC", "RoomC"]);
+  });
+
+  it("handles reversed ranges and alternate separators", () => {
+    const result = parseTimes(["Sun/8~6/Lab"]);
+    expect(result.day).toEqual([7]);
+    expect(result.startTime).toEqual([6]);
+    expect(result.endTime).toEqual([8]);
+  });
+
   it("skips invalid entries", () => {
     const result = parseTimes(["Foo/1/Room", "Mon/x/Room"]);
     expect(result.day).toEqual([]);

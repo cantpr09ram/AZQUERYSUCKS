@@ -80,6 +80,20 @@ describe("applyCourseFilters", () => {
     expect(result).toEqual([courseOne]);
   });
 
+  it("returns empty when search term does not match", () => {
+    const result = applyCourseFilters([courseOne, courseTwo], {
+      searchTerm: "NOPE",
+      department: allDepartmentsLabel,
+      grade: allGradesLabel,
+      required: allRequiredLabel,
+      weekday: "0",
+      startTime: 0,
+      endTime: 0,
+    });
+
+    expect(result).toEqual([]);
+  });
+
   it("filters by department, grade, required, weekday", () => {
     const result = applyCourseFilters([courseOne, courseTwo], {
       searchTerm: "",
@@ -92,6 +106,62 @@ describe("applyCourseFilters", () => {
     });
 
     expect(result).toEqual([courseTwo]);
+  });
+
+  it("returns empty when weekday does not match", () => {
+    const result = applyCourseFilters([courseOne, courseTwo], {
+      searchTerm: "",
+      department: allDepartmentsLabel,
+      grade: allGradesLabel,
+      required: allRequiredLabel,
+      weekday: "4",
+      startTime: 0,
+      endTime: 0,
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty for time range when course lacks schedule", () => {
+    const courseWithoutSchedule: ScheduledCourse = {
+      ...courseOne,
+      day: undefined,
+      startTime: undefined,
+      endTime: undefined,
+    };
+
+    const result = applyCourseFilters([courseWithoutSchedule], {
+      searchTerm: "",
+      department: allDepartmentsLabel,
+      grade: allGradesLabel,
+      required: allRequiredLabel,
+      weekday: "0",
+      startTime: 1,
+      endTime: 2,
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("ignores time range when invalid", () => {
+    const courseWithoutSchedule: ScheduledCourse = {
+      ...courseTwo,
+      day: undefined,
+      startTime: undefined,
+      endTime: undefined,
+    };
+
+    const result = applyCourseFilters([courseWithoutSchedule], {
+      searchTerm: "",
+      department: allDepartmentsLabel,
+      grade: allGradesLabel,
+      required: allRequiredLabel,
+      weekday: "0",
+      startTime: 3,
+      endTime: 0,
+    });
+
+    expect(result).toEqual([courseWithoutSchedule]);
   });
 
   it("filters by time range", () => {

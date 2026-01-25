@@ -43,20 +43,30 @@ jobs:
             apt-get install -y unar rsync
           fi
 
-
       - name: Download latest rar via unar script
+        working-directory: tools
         run: |
+          set -euo pipefail
           chmod +x download.sh
           ./download.sh
 
       - name: Sync env with uv
-        run: uv sync
+        working-directory: tools
+        run: |
+          set -euo pipefail
+          uv sync
 
       - name: Run main.py
-        run: uv run main.py --dir data -o courses.json --pretty
+        working-directory: tools
+        run: |
+          set -euo pipefail
+          # 輸出寫回 repo 根目錄
+          uv run python main.py --dir data -o ../courses.json --pretty
 
       - name: Configure Git identity
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
+          set -euo pipefail
           git config --global user.name "crawler-bot"
           git config --global user.email "crawler-bot@tku.edu"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -68,12 +78,12 @@ jobs:
           git add -A || true
           git commit --allow-empty -m "daily crawl: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || true
 
-
       - name: Pull rebase and push (simple)
         if: ${{ github.event_name != 'pull_request' }}
         env:
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
           git fetch origin "$BRANCH_NAME"
           git pull --rebase origin "$BRANCH_NAME"
           git push origin "HEAD:$BRANCH_NAME"

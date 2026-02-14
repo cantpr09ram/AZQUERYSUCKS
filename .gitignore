@@ -12,10 +12,15 @@
 
 # testing
 /coverage
+test-results/
+playwright-report/
+blob-report/
+.playwright/
 
-# next.js
-/.next/
-/out/
+# tanstack start
+/.tanstack/
+/.output/
+/dist/
 
 # production
 /build
@@ -38,4 +43,94 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+
+# tools (python)
+tools/__pycache__/
+tools/**/__pycache__/
+tools/*.py[codz]
+tools/*$py.class
+tools/*.so
+tools/.Python
+tools/build/
+tools/develop-eggs/
+tools/dist/
+tools/downloads/
+tools/eggs/
+tools/.eggs/
+tools/lib/
+tools/lib64/
+tools/parts/
+tools/sdist/
+tools/var/
+tools/wheels/
+tools/share/python-wheels/
+tools/*.egg-info/
+tools/.installed.cfg
+tools/*.egg
+tools/MANIFEST
+tools/*.manifest
+tools/*.spec
+tools/pip-log.txt
+tools/pip-delete-this-directory.txt
+tools/htmlcov/
+tools/.tox/
+tools/.nox/
+tools/.coverage
+tools/.coverage.*
+tools/.cache
+tools/nosetests.xml
+tools/coverage.xml
+tools/*.cover
+tools/*.py.cover
+tools/.hypothesis/
+tools/.pytest_cache/
+tools/**/.pytest_cache/
+tools/cover/
+tools/*.mo
+tools/*.pot
+tools/*.log
+tools/local_settings.py
+tools/db.sqlite3
+tools/db.sqlite3-journal
+tools/instance/
+tools/.webassets-cache
+tools/.scrapy
+tools/docs/_build/
+tools/.pybuilder/
+tools/target/
+tools/.ipynb_checkpoints
+tools/profile_default/
+tools/ipython_config.py
+tools/__pypackages__/
+tools/celerybeat-schedule
+tools/celerybeat.pid
+tools/*.sage.py
+tools/.env
+tools/.envrc
+tools/.venv
+tools/env/
+tools/venv/
+tools/ENV/
+tools/env.bak/
+tools/venv.bak/
+tools/.spyderproject
+tools/.spyproject
+tools/.ropeproject
+tools/site
+tools/.mypy_cache/
+tools/.dmypy.json
+tools/dmypy.json
+tools/.pyre/
+tools/.pytype/
+tools/cython_debug/
+tools/.abstra/
+tools/.cursorignore
+tools/.cursorindexingignore
+tools/.ruff_cache/
+tools/.pypirc
+tools/marimo/_static/
+tools/marimo/_lsp/
+tools/__marimo__/
+tools/.DS_store
+tools/data/
+tools/file.rar

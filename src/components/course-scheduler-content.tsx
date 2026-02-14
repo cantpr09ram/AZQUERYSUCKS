@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useQueryState, parseAsArrayOf, parseAsString } from "nuqs";
+import { useQuery } from "@tanstack/react-query";
 import { Footer } from "@/components/footer";
 import { SiteHeader } from "@/components/header";
 import { WeeklySchedule } from "@/components/weekly-schedule";
@@ -9,51 +8,51 @@ import type { Course, ScheduledCourse } from "@/types/course";
 import { parseTimes } from "@/utils/parse-times";
 
 const COURSES_URL =
-  process.env.NEXT_PUBLIC_COURSES_URL ??
-  "https://raw.githubusercontent.com/cantpr09ram/CourseCatalogs2Json/refs/heads/main/courses.json";
+  import.meta.env.NEXT_PUBLIC_COURSES_URL ??
+  import.meta.env.VITE_COURSES_URL ??
+  "https://raw.githubusercontent.com/cantpr09ram/AZQUERYSUCKS/refs/heads/main/courses.json";
 
-export function CourseSchedulerContent() {
-  const [courses, setCourses] = useState<ScheduledCourse[]>([]);
-  const [selectedCourseSeqs, setSelectedCourseSeqs] = useQueryState(
-    "selectedCourses",
-    parseAsArrayOf(parseAsString).withDefault([]),
-  );
+interface CourseSchedulerContentProps {
+  selectedCourseSeqs: string[];
+  setSelectedCourseSeqs: (
+    updater: (prev: string[]) => string[],
+    replace?: boolean,
+  ) => void;
+}
+
+export function CourseSchedulerContent({
+  selectedCourseSeqs,
+  setSelectedCourseSeqs,
+}: CourseSchedulerContentProps) {
+  const { data: courses = [] } = useQuery({
+    queryKey: ["courses", COURSES_URL],
+    queryFn: async () => {
+      const res = await fetch(COURSES_URL);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch courses: ${res.status}`);
+      }
+
+      const data: Course[] = await res.json();
+      return data;
+    },
+    select: (data): ScheduledCourse[] => {
+      return data.map((course) => {
+        const parsed = parseTimes(course.times);
+
+        return {
+          ...course,
+          place: parsed.place,
+          day: parsed.day,
+          startTime: parsed.startTime,
+          endTime: parsed.endTime,
+        };
+      });
+    },
+  });
+
   const selectedCourses = courses.filter((course) =>
     selectedCourseSeqs.includes(course.seq),
   );
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const loadCourses = async () => {
-      try {
-        const res = await fetch(COURSES_URL, { signal: controller.signal });
-        if (!res.ok) {
-          throw new Error(`Failed to fetch courses: ${res.status}`);
-        }
-        const data: Course[] = await res.json();
-        const normalized: ScheduledCourse[] = data.map((course) => {
-          const parsed = parseTimes(course.times);
-          return {
-            ...course,
-            place: parsed.place,
-            day: parsed.day,
-            startTime: parsed.startTime,
-            endTime: parsed.endTime,
-          };
-        });
-        setCourses(normalized);
-      } catch (error) {
-        if ((error as Error).name === "AbortError") return;
-        console.error("Failed to fetch courses:", error);
-        setCourses([]);
-      }
-    };
-
-    loadCourses();
-
-    return () => controller.abort();
-  }, []);
 
   const handleCourseSelect = (course: ScheduledCourse) => {
     setSelectedCourseSeqs((prev) =>

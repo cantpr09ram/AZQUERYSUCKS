@@ -10,8 +10,38 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      tools: ${{ steps.filter.outputs.tools }}
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            tools:
+              - "tools/**"
+            app:
+              - "src/**"
+              - "public/**"
+              - "package.json"
+              - "pnpm-lock.yaml"
+              - "next.config.ts"
+              - "tsconfig.json"
+              - "vite.config.ts"
+              - "vitest.config.ts"
+              - "biome.json"
+              - ".github/workflows/test.yml"
+
   test:
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.app == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +59,57 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Run lint
+        run: pnpm lint
 
       - name: Run tests with coverage
         run: pnpm test:coverage
+
+  build:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.app == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Run build
+        run: pnpm build
+
+  tools-test:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.tools == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v1
+        with:
+          python-version: "3.12"
+
+      - name: Sync env with uv
+        working-directory: tools
+        run: uv sync --frozen
+
+      - name: Run tools unit tests
+        working-directory: tools
+        run: uv run python -m unittest discover -s tests

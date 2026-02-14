@@ -10,7 +10,7 @@ import { parseTimes } from "@/utils/parse-times";
 const COURSES_URL =
   import.meta.env.NEXT_PUBLIC_COURSES_URL ??
   import.meta.env.VITE_COURSES_URL ??
-  "https://raw.githubusercontent.com/cantpr09ram/AZQUERYSUCKS/refs/heads/main/courses.json";
+  "https://raw.githubusercontent.com/tkuitocc/AZQUERYSUCKS/refs/heads/main/courses.json";
 
 interface CourseSchedulerContentProps {
   selectedCourseSeqs: string[];

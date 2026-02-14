@@ -24,7 +24,7 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       {
         property: "og:url",
-        content: "https://tkuitocc.github.io/AZQUERYSUCKS/",
+        content: "https://tkuitocc.github.io/azquerysucks/",
       },
       { property: "og:title", content: "AZQUERYSUCKS" },
       { property: "og:description", content: "so I made one" },

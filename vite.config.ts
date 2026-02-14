@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  base: "/AZQUERYSUCKS/",
+  base: "/azquerysucks/",
   envPrefix: ["VITE_", "NEXT_PUBLIC_"],
   plugins: [
     tsconfigPaths(),

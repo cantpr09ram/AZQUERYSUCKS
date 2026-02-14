@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-Open `http://localhost:5173/AZQUERYSUCKS/`.
+Open `http://localhost:5173/azquerysucks/`.
 
 ## Environment
 
@@ -36,4 +36,4 @@ If neither is set, the app uses the public GitHub JSON fallback in `src/componen
 ## Deployment (GitHub Pages)
 
 Deployment is handled directly by GitHub Actions on pushes to `main`, publishing
-`dist` to GitHub Pages at `https://tkuitocc.github.io/AZQUERYSUCKS/`.
+`dist` to GitHub Pages at `https://tkuitocc.github.io/azquerysucks/`.

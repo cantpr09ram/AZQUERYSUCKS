@@ -30,7 +30,7 @@ If neither is set, the app uses the public GitHub JSON fallback in `src/componen
 
 - `public/manifest.webmanifest`
 - `public/robots.txt`
-- `public/og.svg`
+- `public/og.png`
 - `public/favicon.ico`
 
 ## Deployment (GitHub Pages)

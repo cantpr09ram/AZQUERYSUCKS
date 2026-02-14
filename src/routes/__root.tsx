@@ -29,7 +29,7 @@ export const Route = createRootRoute({
       { property: "og:title", content: "AZQUERYSUCKS" },
       { property: "og:description", content: "so I made one" },
       { property: "og:site_name", content: "AZQUERYSUCKS" },
-      { property: "og:image", content: `${BASE_URL}og.svg` },
+      { property: "og:image", content: `${BASE_URL}og.png` },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

@@ -16,6 +16,7 @@
       "!build",
       "!courses.json",
       "!src/routeTree.gen.ts",
+      "!test-results",
       "!test-results"
     ]
   },

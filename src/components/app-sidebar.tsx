@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { CourseList } from "@/components/course-list";
 import {
@@ -38,7 +38,7 @@ export function AppSidebar({
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/">
+              <Link to="/">
                 <span className="text-base font-semibold">AZQUERYSUCKS</span>
               </Link>
             </SidebarMenuButton>

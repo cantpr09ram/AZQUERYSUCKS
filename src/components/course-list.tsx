@@ -1,7 +1,8 @@
 "use client";
 
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -157,6 +158,15 @@ export function CourseList({
     return withConflict.slice(startIndex, startIndex + coursesPerPage);
   }, [withConflict, currentPage]);
 
+  const listRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: paginated.length,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => 110,
+    overscan: 6,
+  });
+  const virtualItems = rowVirtualizer.getVirtualItems();
+
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
@@ -205,7 +215,7 @@ export function CourseList({
   };
 
   return (
-    <div className="p-5 bg-card border-r border-border flex flex-col max-h-250 overflow-y-auto">
+    <div className="p-5 bg-card border-r border-border flex flex-col max-h-250 overflow-hidden">
       {/* Header */}
       <div className="flex flex-col gap-2 md:gap-3 lg:flex-row lg:items-center lg:gap-3">
         {/* All selects in one horizontal row on lg+ */}
@@ -424,66 +434,77 @@ export function CourseList({
         </div>
       </div>
       {/* Course List */}
-      <div className="py-5 flex1 space-y-2">
-        {paginated.map(({ course, conflict }, idx) => {
-          const selected = isSelected(course.seq);
-          return (
-            <Card
-              key={
-                course.seq ??
-                `${course.code}-${course.class}-${course.group ?? ""}-${course.title}-${idx}`
-              }
-              aria-disabled={conflict}
-              className={`p-1 transition-colors ${
-                conflict
-                  ? "opacity-60 cursor-not-allowed border-destructive"
-                  : "cursor-pointer hover:bg-accent/50"
-              } ${selected ? "bg-accent/20 border-accent" : ""}`}
-              onClick={() => handleCourseToggle(course, conflict)}
-              title={conflict ? "時間衝突，無法選取" : ""}
-            >
-              <div className="flex items-start gap-3 p-1">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    aria-label={`選擇 ${course.title || course.code || "課程"}`}
-                    checked={selected}
-                    disabled={conflict}
-                    onChange={(event) => {
-                      event.stopPropagation();
-                      handleCourseToggle(course, conflict);
-                    }}
-                    className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent disabled:cursor-not-allowed"
-                  />
-                </div>
+      <div ref={listRef} className="py-5 flex-1 overflow-y-auto">
+        <div
+          className="relative"
+          style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+        >
+          {virtualItems.map((virtualRow) => {
+            const { course, conflict } = paginated[virtualRow.index];
+            const selected = isSelected(course.seq);
+            return (
+              <div
+                key={
+                  course.seq ??
+                  `${course.code}-${course.class}-${course.group ?? ""}-${course.title}-${virtualRow.index}`
+                }
+                className="absolute left-0 top-0 w-full"
+                style={{ transform: `translateY(${virtualRow.start}px)` }}
+              >
+                <Card
+                  aria-disabled={conflict}
+                  className={`p-1 mb-2 transition-colors ${
+                    conflict
+                      ? "opacity-60 cursor-not-allowed border-destructive"
+                      : "cursor-pointer hover:bg-accent/50"
+                  } ${selected ? "bg-accent/20 border-accent" : ""}`}
+                  onClick={() => handleCourseToggle(course, conflict)}
+                  title={conflict ? "時間衝突，無法選取" : ""}
+                >
+                  <div className="flex items-start gap-3 p-1">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        aria-label={`選擇 ${course.title || course.code || "課程"}`}
+                        checked={selected}
+                        disabled={conflict}
+                        onChange={(event) => {
+                          event.stopPropagation();
+                          handleCourseToggle(course, conflict);
+                        }}
+                        className="w-4 h-4 text-accent bg-background border-border rounded focus:ring-accent disabled:cursor-not-allowed"
+                      />
+                    </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
-                      {course.code}
-                    </span>
-                    <span
-                      className="text-sm font-medium truncate block max-w-[200px]"
-                      title={course.title || ""}
-                    >
-                      {course.title || ""}
-                    </span>
-                  </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
+                          {course.code}
+                        </span>
+                        <span
+                          className="text-sm font-medium truncate block max-w-[200px]"
+                          title={course.title || ""}
+                        >
+                          {course.title || ""}
+                        </span>
+                      </div>
 
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div>學分 {course.credits}</div>
-                    <div
-                      className="truncate max-w-[250px]"
-                      title={`${course.teacher || ""} | ${course.times || ""}`}
-                    >
-                      {course.teacher || ""} | {course.times || ""}
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>學分 {course.credits}</div>
+                        <div
+                          className="truncate max-w-[250px]"
+                          title={`${course.teacher || ""} | ${course.times || ""}`}
+                        >
+                          {course.teacher || ""} | {course.times || ""}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               </div>
-            </Card>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       <Pagination

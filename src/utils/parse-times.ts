@@ -74,7 +74,6 @@ function parsePeriodTokens(tok: string): Array<[number, number]> | null {
       e = v;
     } else if (v === e) {
       // 重複值，跳過
-      continue;
     } else {
       out.push([s, e]);
       s = e = v;

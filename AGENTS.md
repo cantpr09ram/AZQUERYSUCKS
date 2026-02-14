@@ -138,5 +138,6 @@ If neither is set, the app falls back to the public GitHub JSON URL in
 
 ## Tooling Notes
 - Vite is configured with `envPrefix: ["VITE_", "NEXT_PUBLIC_"]`.
-- Vitest runs in Node environment and only includes `src/**/*.test.ts`.
+- Vitest runs in a `jsdom` environment and includes `src/**/*.test.{ts,tsx}`.
+- Vitest uses a setup file; see `vitest.config.ts` for the configured path.
 - Coverage targets utilities in `src/utils/**/*.{ts,tsx}` with 80% thresholds.
